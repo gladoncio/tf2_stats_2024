@@ -16,8 +16,8 @@
 public Plugin myinfo = 
 {
 	name = "TF2 rank / stats ", 
-	author = "Tu nombre aquí", 
-	description = "Breve descripción de la funcionalidad del plugin aquí", 
+	author = "Gladoncio", 
+	description = "Un plugin que registrara las stats y registrara un sistema de niveles", 
 	version = PLUGIN_VERSION, 
 	url = "Tu URL de sitio web/Perfil de AlliedModders"
 };
@@ -25,7 +25,7 @@ public Plugin myinfo =
 
 public Plugin myPlugin;
 
-// Implement the forward callback
+// Esto verifica si el plugin es compatible con tf2
 public APLRes OnAskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
     EngineVersion g_engineversion = GetEngineVersion();
@@ -38,6 +38,8 @@ public APLRes OnAskPluginLoad2(Handle myself, bool late, char[] error, int err_m
     return APLRes_Success;
 }
 
+// Aqui se definen las variables que se usaran
+
 
 int g_PlayerKills[MAXPLAYERS + 1];
 int g_PlayerDeaths[MAXPLAYERS + 1];
@@ -45,16 +47,15 @@ int g_PlayerSuicides[MAXPLAYERS + 1];
 
 
 
-
+// Esto se ejecuta cuando inicia el plugin
 public void OnPluginStart()
 {
     RegAdminCmd("sm_hud", Command_PrintMessage , ADMFLAG_GENERIC);
     HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
     HookEvent("player_spawn",Event_PlayerSpawn, EventHookMode_Pre);
-
 }
 
-
+// esta es la funcion que usare para llamarala desde cualquier parte del codigo que imprima un hud con el nivel en pantalla
 void ShowHudMessage(int client, const char[] message)
 {
     Handle hHudSync = CreateHudSynchronizer();
@@ -66,12 +67,14 @@ void ShowHudMessage(int client, const char[] message)
     SetHudTextParams(0.01, 0.1, 10000.0, 255, 255, 255, 255, 0);
     ShowSyncHudText(client, hHudSync, message);
 
-    SetHudTextParams(0.01, 0.13, 10000.0, 255, 255, 255, 255, 0);
-    ShowSyncHudText(client, hHudSync, "Level: 0 I|||||||||||||");
+    // SetHudTextParams(0.01, 0.13, 10000.0, 255, 255, 255, 255, 0);
+    // ShowSyncHudText(client, hHudSync, "Level: 0 I|||||||||||||");
 
     CloseHandle(hHudSync);
 }
 
+
+// Este es el evento para cuando un player hace respawn
 public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
     int client_id = GetEventInt(event, "userid");
@@ -80,7 +83,7 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
     CreateTimer(2.0, Timer_ShowSecondMessage, client);
 }
 
-
+// Esta es la parte que carga cuando un player se conecta al servidor
 public void OnClientPutInServer(int client)
 {
     // Inicializar kills y deaths del jugador
@@ -125,19 +128,25 @@ public void OnClientPutInServer(int client)
 
 
 // En esta parte el hook definido arriba ara las acciones sobre despues de la muerte de un usuario , sumara o restara la kill y muerte de los usuarios respectivamente
-
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
+
+    
     char weapon[64];
     int victimId = event.GetInt("userid");
+    g_PlayerDeaths[victimId] += 1;
     int attackerId = event.GetInt("attacker");
     bool headshot = event.GetBool("headshot");
     event.GetString("weapon", weapon, sizeof(weapon));
- 
+
+    // variable para los nombres
+
     char nameAttacker[64];
+    char nameVictim[64];
     int victim = GetClientOfUserId(victimId);
     int attacker = GetClientOfUserId(attackerId);
     GetClientName(attacker, nameAttacker, sizeof(nameAttacker));
+    GetClientName(victim, nameVictim, sizeof(nameVictim));
  
     PrintToConsole(victim,
         "You were killed by \"%s\" (weapon \"%s\") (headshot \"%d\")",
@@ -146,12 +155,12 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
         headshot);
 
     char mensaje[64];
-    Format(mensaje, sizeof(mensaje), "murio %s", nameAttacker);
+    Format(mensaje, sizeof(mensaje), "murio %s y muertes: %d", nameVictim , g_PlayerDeaths[victimId]);
     ShowHudMessage(victim, mensaje);
 
 }
 
-
+// Este es solamente un timer para ejecutar la funcion que imprimira el hud
 public Action Timer_ShowSecondMessage(Handle timer, any client)
 {
     // Muestra el segundo mensaje después de 3 segundos
