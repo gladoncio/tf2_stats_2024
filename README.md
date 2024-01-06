@@ -1,5 +1,5 @@
 <div align="center">
-  <h1><code>tf2_stats_2023</code></h1>
+  <h1><code>tf2_stats_2024</code></h1>
   <p>
     <strong>Short Description</strong>
   </p>
