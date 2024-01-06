@@ -25,6 +25,9 @@
   </p>
 </div>
 
+## Requirements ##
+- Este plugin esta actualmente en desarrollo la idea seria crear un sistema de estadísticas junto a un sistema de niveles
+
 
 ## Requirements ##
 - Sourcemod and Metamod
@@ -32,7 +35,7 @@
 
 ## Installation ##
 1. Grab the latest release from the release page and unzip it in your sourcemod folder.
-2. Restart the server or type `sm plugins load tf2_stats_2023` in the console to load the plugin.
+2. Restart the server or type `sm plugins load aaaaa` in the console to load the plugin.
 3. The config file will be automatically generated in cfg/sourcemod/
 
 ## Configuration ##
