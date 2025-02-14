@@ -25,22 +25,22 @@
   </p>
 </div>
 
-## Requirements ##
-- Este plugin esta actualmente en desarrollo la idea seria crear un sistema de estadísticas junto a un sistema de niveles
+# TF2 Stats Plugin (Beta)
 
+Este plugin está actualmente en desarrollo. La idea es crear un sistema de estadísticas junto a un sistema de niveles.
 
-## Requirements ##
+## Requirements
 - Sourcemod and Metamod
 
+## Installation
+1. Descarga la última versión desde la página de releases y descomprímela en tu carpeta de Sourcemod.
 
-## Installation ##
-1. Grab the latest release from the release page and unzip it in your sourcemod folder.
-2. Restart the server or type `sm plugins load aaaaa` in the console to load the plugin.
-3. The config file will be automatically generated in cfg/sourcemod/
+## Configuration
+- Una vez cargado el plugin, puedes modificar las especificaciones en `addons/sourcemod/config/playerstats.cfg`.
+- Una vez cargado el plugin, puedes modificar las especificaciones en `addons/sourcemod/config/playerlevels.cfg`.
 
-## Configuration ##
-- You can modify the phrases in addons/sourcemod/translations/tf2_stats_2023.phrases.txt.
-- Once the plugin has been loaded, you can modify the cvars in cfg/sourcemod/tf2_stats_2023.cfg.
+## Usage (Beta)
+Este plugin aún está en fase beta. Actualmente **no guarda todas las estadísticas**, como los headshots, y **no maneja colores**. Sin embargo, representa un gran avance desde la última actualización.
 
+¡Gracias por probar el plugin! Cualquier sugerencia o reporte de errores es bienvenido.
 
-## Usage ##
