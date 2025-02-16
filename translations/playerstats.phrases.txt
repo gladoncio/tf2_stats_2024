@@ -1,0 +1,37 @@
+"Phrases"
+{
+    "player_invalid"
+    {
+        "es"        "{violet} Jugador conectado: (SteamID no disponible)"
+        "en"        "{violet} Player connected: (SteamID not available)"
+    }
+
+    "player_connect"
+    {
+        "#format"   "{1:s},{2:s}"
+        "es"        "{violet} Jugador conectado: {1} (SteamID: {2})"
+        "en"        "{violet} Player connected: {1} (SteamID: {2})"
+    }
+
+    "test"
+    {
+        "#format"   "{1:s}"
+        "es"        "{violet} Jugador conectado: {1}"
+        "en"        "{violet} Player connected: {1}"
+    }
+
+    "Round_Wins"
+    {
+        "#format"   "{1:s},{2:s}"
+        "es"        "{violet} Total de rondas ganadas: {1} puntos ganados: {2}"
+        "en"        "{violet} Rounds wins: {1} {2} Points"
+    }
+
+    "Round_Lose"
+    {
+        "#format"   "{1:s},{2:s}"
+        "es"        "{violet}Total de rondas perdidas: {1} puntos perdidos: {2}"
+        "en"        "{violet} Rounds Lose: {1}  {2} Points"
+    }
+
+}

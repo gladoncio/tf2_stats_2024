@@ -1,5 +1,7 @@
 #include <sourcemod>
+#include <tf2>
 #include <tf2_stocks>
+#include <morecolors>
 
 
 
@@ -12,7 +14,23 @@
 // Definir el máximo de niveles permitidos
 #define MAX_NIVELES 50
 #define MAX_NOMBRE 64  // Definir el tamaño máximo para nombres
-#define SQL_CREATETABLE "CREATE TABLE IF NOT EXISTS ranks_players (id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,steamid TEXT,steamid64 TEXT,rounds_wins INTEGER,rounds_lose INTEGER,kills INTEGER, points INTEGER ,deaths INTEGER,suicides INTEGER,headshots INTEGER,level INTEGER,dominations INTEGER,first_join_date DATETIME, play_time_seconds FLOAT);"
+#define PLUGIN_PREFIX 	"{black}[Player Ranks]{valve} " 	// Our chat friendly prefix.
+#define SQL_CREATETABLE "CREATE TABLE IF NOT EXISTS ranks_players (id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,steamid TEXT,steamid64 TEXT,rounds_wins INTEGER,rounds_lose INTEGER,kills INTEGER, points INTEGER,deaths INTEGER,suicides INTEGER,headshots INTEGER,level INTEGER,dominations INTEGER,first_join_date DATETIME, play_time_seconds FLOAT, g_dominado INTEGER DEFAULT 0, g_assist INTEGER DEFAULT 0, backstabEvent INTEGER DEFAULT 0, burningEvent INTEGER DEFAULT 0, suicideEvent INTEGER DEFAULT 0, tauntHadoukenEvent INTEGER DEFAULT 0, burningFlareEvent INTEGER DEFAULT 0, tauntHighNoonEvent INTEGER DEFAULT 0, tauntGrandSlamEvent INTEGER DEFAULT 0, penetrateMyTeamEvent INTEGER DEFAULT 0, penetrateHeadshotEvent INTEGER DEFAULT 0, telefragEvent INTEGER DEFAULT 0, flyingBurnEvent INTEGER DEFAULT 0, pumpkinBombEvent INTEGER DEFAULT 0, decapitationEvent INTEGER DEFAULT 0, shotgunRevengeCritEvent INTEGER DEFAULT 0, fishKillEvent INTEGER DEFAULT 0, tauntAllclassGuitarRiffEvent INTEGER DEFAULT 0, kartEvent INTEGER DEFAULT 0, dragonsFuryIgniteEvent INTEGER DEFAULT 0, slapKillEvent INTEGER DEFAULT 0, axtinguishBoosterEvent INTEGER DEFAULT 0, g_ObjectsDestroyed INTEGER DEFAULT 0, g_BuildingsDestroyed INTEGER DEFAULT 0, g_EventsAssisted INTEGER DEFAULT 0);"
+
+#define SQL_SELECT_INFO "SELECT kills, deaths, suicides, headshots, level, dominations, play_time_seconds, points, rounds_wins, rounds_lose, g_dominado, g_assist, backstabEvent, burningEvent, suicideEvent, tauntHadoukenEvent, burningFlareEvent, tauntHighNoonEvent, tauntGrandSlamEvent, penetrateMyTeamEvent, penetrateHeadshotEvent, telefragEvent, flyingBurnEvent, pumpkinBombEvent, decapitationEvent, shotgunRevengeCritEvent, fishKillEvent, tauntAllclassGuitarRiffEvent, kartEvent, dragonsFuryIgniteEvent, slapKillEvent, axtinguishBoosterEvent, g_ObjectsDestroyed, g_BuildingsDestroyed, g_EventsAssisted FROM ranks_players WHERE steamid = '%s'"
+
+#define SQL_PLAYER_NOT_EXISTS "INSERT INTO ranks_players (steamid, steamid64, name, rounds_wins, rounds_lose, kills, points, deaths, suicides, headshots, level, dominations, first_join_date, play_time_seconds, g_dominado, g_assist, backstabEvent, burningEvent, suicideEvent, tauntHadoukenEvent, burningFlareEvent, tauntHighNoonEvent, tauntGrandSlamEvent, penetrateMyTeamEvent, penetrateHeadshotEvent, telefragEvent, flyingBurnEvent, pumpkinBombEvent, decapitationEvent, shotgunRevengeCritEvent, fishKillEvent, tauntAllclassGuitarRiffEvent, kartEvent, dragonsFuryIgniteEvent, slapKillEvent, axtinguishBoosterEvent, g_ObjectsDestroyed, g_BuildingsDestroyed, g_EventsAssisted) VALUES ('%s', '%s', '%s', 0, 0, 0, 0, 0, 0, 0, 0, 0, '%s', 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)"
+
+
+#define SQL_UPDATE_INFO "UPDATE ranks_players SET kills = %d, deaths = %d, suicides = %d, headshots = %d, level = %d, dominations = %d, play_time_seconds = play_time_seconds + %.2f, points = %d, rounds_wins = %d, rounds_lose = %d, g_dominado = %d, g_assist = %d, backstabEvent = %d, burningEvent = %d, suicideEvent = %d, tauntHadoukenEvent = %d, burningFlareEvent = %d, tauntHighNoonEvent = %d, tauntGrandSlamEvent = %d, penetrateMyTeamEvent = %d, penetrateHeadshotEvent = %d, telefragEvent = %d, flyingBurnEvent = %d, pumpkinBombEvent = %d, decapitationEvent = %d, shotgunRevengeCritEvent = %d, fishKillEvent = %d, tauntAllclassGuitarRiffEvent = %d, kartEvent = %d, dragonsFuryIgniteEvent = %d, slapKillEvent = %d, axtinguishBoosterEvent = %d, g_ObjectsDestroyed = %d, g_BuildingsDestroyed = %d, g_EventsAssisted = %d WHERE steamid = '%s'"
+
+// Consulta para obtener el Top 20
+#define SQL_SELECT_TOP20 "SELECT name, points FROM ranks_players ORDER BY points DESC LIMIT 20"
+
+#define SQL_SELECT_PLAYER_STATS "SELECT kills, deaths, suicides, headshots, level, dominations, play_time_seconds, points, rounds_wins, rounds_lose FROM ranks_players WHERE steamid = '%s'"
+
+#define SQL_UPDATE_ADMIN_POINTS "UPDATE ranks_players SET points = %d WHERE steamid = '%s'"
+
 
 public Plugin myinfo =
 {
@@ -41,30 +59,88 @@ public APLRes OnAskPluginLoad2(Handle myself, bool late, char[] error, int err_m
 
 
 enum struct playerData {
-	int g_Points;
-    int g_PlayerKills;
-    int g_PlayerDeaths;
-    int g_PlayerSuicides;
-    int g_PlayerHeadshots;
-    int g_PlayerLevel;
-    int g_PlayerDominations; 
-    float g_PlayerPlayTime;
-    float g_PlayerStartTime;   
-    char g_LevelName[64];
-    int g_roundWins;
-    int g_roundLose; 
+    int g_Points;                // Puntos totales del jugador
+    int g_PlayerKills;           // Número de kills del jugador
+    int g_PlayerDeaths;          // Número de muertes del jugador
+    int g_PlayerSuicides;        // Número de suicidios del jugador
+    int g_PlayerHeadshots;       // Número de headshots del jugador
+    int g_PlayerLevel;           // Nivel del jugador
+    int g_dominando;             // Número de jugadores dominados
+    int g_dominado;              // Número de jugadores que dominan al jugador
+    int g_assist;                // Número de asistencias del jugador
+    float g_PlayerPlayTime;      // Tiempo jugado
+    float g_PlayerStartTime;     // Hora de inicio del jugador
+    char g_LevelName[64];        // Nombre del nivel en el que está el jugador
+    int g_roundWins;             // Número de rondas ganadas
+    int g_roundLose;             // Número de rondas perdidas
+    int g_points_required;       // Puntos requeridos para el siguiente nivel
+    int g_points_lastlevel;      // Puntos del último nivel
+    int backstabEvent;           // Número de backstabs
+    int burningEvent;            // Número de eventos de quemaduras
+    int suicideEvent;            // Número de suicidios
+    int tauntHadoukenEvent;      // Número de eventos de Hadouken
+    int burningFlareEvent;       // Número de eventos de quemadura con flare
+    int tauntHighNoonEvent;      // Número de eventos de High Noon
+    int tauntGrandSlamEvent;     // Número de eventos de Grand Slam
+    int penetrateMyTeamEvent;    // Número de penetraciones a su equipo
+    int penetrateHeadshotEvent;  // Número de headshots penetrantes
+    int telefragEvent;           // Número de telefrag
+    int flyingBurnEvent;         // Número de eventos de quema voladora
+    int pumpkinBombEvent;        // Número de bombas de calabaza
+    int decapitationEvent;       // Número de decapitaciones
+    int shotgunRevengeCritEvent; // Número de crits de venganza con escopeta
+    int fishKillEvent;           // Número de muertes por pez
+    int tauntAllclassGuitarRiffEvent; // Número de taunts con guitarra
+    int kartEvent;               // Número de eventos de kart
+    int dragonsFuryIgniteEvent;  // Número de eventos de ignición de Dragons Fury
+    int slapKillEvent;           // Número de muertes por bofetada
+    int axtinguishBoosterEvent;  // Número de eventos de axtinguish
+    int g_ObjectsDestroyed;      // Número de objetos destruidos
+    int g_BuildingsDestroyed;    // Número de construcciones destruidas
+    int g_EventsAssisted;        // Número de eventos asistidos
+    // Otros eventos pueden agregarse aquí
 }
 
+
 // Definir un struct para almacenar la configuración
-enum struct ConfigData
-{
-    int puntosKill;
-    int puntosAssist;
-    int puntosHeadshot;
-    int puntosGanarRonda;
-    int puntosSuicide;
-    int puntosDeath;
+enum struct ConfigData {
+    int use_hud;                 // Usar HUD             // Puntos totales del jugador
+    int puntosg_PlayerKills;           // Número de kills del jugador
+    int puntosg_PlayerDeaths;          // Número de muertes del jugador
+    int puntosg_PlayerSuicides;        // Número de suicidios del jugador
+    int puntosg_PlayerHeadshots;       // Número de headshots del jugador
+    int puntosg_PlayerLevel;           // Nivel del jugador
+    int puntosg_dominando;             // Número de jugadores dominados
+    int puntosg_dominado;              // Número de jugadores que dominan al jugador
+    int puntosg_assist;                // Número de asistencias del jugador
+    int puntosg_roundWins;             // Número de rondas ganadas
+    int puntosg_roundLose;             // Número de rondas perdidas
+    int puntosbackstabEvent;           // Número de backstabs
+    int puntosburningEvent;            // Número de eventos de quemaduras
+    int puntossuicideEvent;            // Número de suicidios
+    int puntostauntHadoukenEvent;      // Número de eventos de Hadouken
+    int puntosburningFlareEvent;       // Número de eventos de quemadura con flare
+    int puntostauntHighNoonEvent;      // Número de eventos de High Noon
+    int puntostauntGrandSlamEvent;     // Número de eventos de Grand Slam
+    int puntospenetrateMyTeamEvent;    // Número de penetraciones a su equipo
+    int puntospenetrateHeadshotEvent;  // Número de headshots penetrantes
+    int puntostelefragEvent;           // Número de telefrag
+    int puntosflyingBurnEvent;         // Número de eventos de quema voladora
+    int puntospumpkinBombEvent;        // Número de bombas de calabaza
+    int puntosdecapitationEvent;       // Número de decapitaciones
+    int puntosshotgunRevengeCritEvent; // Número de crits de venganza con escopeta
+    int puntosfishKillEvent;           // Número de muertes por pez
+    int puntostauntAllclassGuitarRiffEvent; // Número de taunts con guitarra
+    int puntoskartEvent;               // Número de eventos de kart
+    int puntosdragonsFuryIgniteEvent;  // Número de eventos de ignición de Dragons Fury
+    int puntosslapKillEvent;           // Número de muertes por bofetada
+    int puntosaxtinguishBoosterEvent;  // Número de eventos de axtinguish
+    int puntosg_ObjectsDestroyed;      // Número de objetos destruidos
+    int puntosg_BuildingsDestroyed;    // Número de construcciones destruidas
+    int puntosg_EventsAssisted;        // Número de eventos asistidos
+    // Otros eventos pueden agregarse aquí
 }
+
 
 // Estructura para almacenar la información del nivel
 enum struct Nivel
@@ -86,7 +162,179 @@ int nivelesPuntos[MAX_NIVELES];
 Database g_DB;
 char g_DBError[255];
 Handle g_hHudSync = null;
+Handle g_hHudTimer[MAXPLAYERS + 1] = { INVALID_HANDLE, ... };  // Almacena los timers de cada jugador
+int g_LastProgress[MAXPLAYERS + 1] = { -1, ... }; // Almacena el último progreso mostrado para evitar actualizaciones innecesarias
 
+
+
+// Esto se ejecuta cuando inicia el plugin
+public void OnPluginStart()
+{
+    LoadTranslations("common.phrases");
+    LoadTranslations("playerstats.phrases");
+    LoadLevelsConfig();
+    RegConsoleCmd("sm_mylevel", Comando_MiNivel, "Muestra tu nivel actual");
+    RegConsoleCmd("sm_niveles", ComandoNiveles, "Muestra los niveles en la consola.");
+    RegAdminCmd("sm_hud", Command_PrintMessage, ADMFLAG_GENERIC);
+    HookEvent("player_death", OnPlayerDeathEventsStocks);
+    HookEvent("player_spawn", Event_PlayerSpawn, EventHookMode_Pre);
+    HookEvent("teamplay_round_win", Evento_RondaGanada, EventHookMode_Post);
+    HookEvent("object_destroyed", OnObjectDestroyed);
+    RegAdminCmd("sm_setpoints", Command_SetPoints, ADMFLAG_GENERIC, "Cambia los puntos de un jugador usando SteamID.");
+    RegConsoleCmd("sm_rank", Command_ShowStats);
+    
+
+
+	g_DB = SQL_Connect("playerstats", false, g_DBError, sizeof(g_DBError));
+	
+	if (g_DB == null) {
+	    PrintToServer("Could not connect to 'playerstats': %s", g_DBError);
+	    return;
+	}
+    else
+    {
+        createInitialBd();
+    }
+}
+
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max){
+    MarkNativeAsOptional("GetUserMessageType");
+    return APLRes_Success;
+} 
+
+
+// Función para mostrar las estadísticas en un menú con opciones interactivas
+public Action ShowPlayerStatsMenu(int client)
+{
+    if (!client || !IsClientInGame(client)) return Plugin_Handled;
+
+    // Crear el menú
+    Menu menu = new Menu(PlayerStatsMenuHandler);
+    menu.SetTitle("Estadísticas de Jugador");
+
+    // Agregar ítems individuales para cada estadística
+    char entry[128]; // Tamaño ajustado para cada ítem individual
+    // Puntos
+    Format(entry, sizeof(entry), "Puntos: %d", playersdata[client].g_Points);
+    menu.AddItem("points", entry);
+    if(playersdata[client].g_PlayerPlayTime / 60.0 > 60) {
+        Format(entry, sizeof(entry), "Tiempo Jugado: %.2f horas", (playersdata[client].g_PlayerPlayTime / 60.0) / 60.0);
+        menu.AddItem("playtime", entry);
+    }else{
+        Format(entry, sizeof(entry), "Tiempo Jugado: %.2f minutos", playersdata[client].g_PlayerPlayTime / 60.0);
+        menu.AddItem("playtime", entry);
+    }
+
+
+    // Kills
+    Format(entry, sizeof(entry), "Kills: %d", playersdata[client].g_PlayerKills);
+    menu.AddItem("kills", entry);
+
+    // Deaths
+    Format(entry, sizeof(entry), "Deaths: %d", playersdata[client].g_PlayerDeaths);
+    menu.AddItem("deaths", entry);
+
+    // Suicidios
+    Format(entry, sizeof(entry), "Suicidios: %d", playersdata[client].g_PlayerSuicides);
+    menu.AddItem("suicides", entry);
+
+    // Headshots
+    Format(entry, sizeof(entry), "Headshots: %d", playersdata[client].g_PlayerHeadshots);
+    menu.AddItem("headshots", entry);
+
+    // Nivel
+    Format(entry, sizeof(entry), "Nivel: %d", playersdata[client].g_PlayerLevel);
+    menu.AddItem("level", entry);
+
+    // Dominaciones
+    Format(entry, sizeof(entry), "Dominaciones: %d", playersdata[client].g_dominando);
+    menu.AddItem("dominations", entry);
+    // Rondas Ganadas
+    Format(entry, sizeof(entry), "Rondas Ganadas: %d", playersdata[client].g_roundWins);
+    menu.AddItem("rounds_won", entry);
+
+    // Rondas Perdidas
+    Format(entry, sizeof(entry), "Rondas Perdidas: %d", playersdata[client].g_roundLose);
+    menu.AddItem("rounds_lost", entry);
+
+    // Mostrar el menú al jugador
+    menu.Display(client, 20);
+    return Plugin_Handled;
+}
+
+// Manejo de selección del menú
+public int PlayerStatsMenuHandler(Menu menu, MenuAction action, int client, int item)
+{
+    if (action == MenuAction_End)
+        delete menu;
+    
+    return 0;
+}
+
+public Action Command_SetPoints(int client, int args)
+{
+    // Verificar permisos de administrador
+    if (!CheckCommandAccess(client, "sm_setpoints", ADMFLAG_GENERIC))
+    {
+        ReplyToCommand(client, "[Error] No tienes permisos para usar este comando.");
+        return Plugin_Handled;
+    }
+
+    // Verificar que se proporcionaron los argumentos correctos
+    if (args < 2)
+    {
+        ReplyToCommand(client, "[Uso] !setpoints <usuario> <puntos>");
+        return Plugin_Handled;
+    }
+
+    // Obtener los argumentos
+    char targetArg[MAX_NAME_LENGTH];
+    char pointsArg[32];
+
+    GetCmdArg(1, targetArg, sizeof(targetArg));
+    GetCmdArg(2, pointsArg, sizeof(pointsArg));
+
+    // Convertir los puntos a número
+    int newPoints = StringToInt(pointsArg);
+    if (newPoints < 0)
+    {
+        ReplyToCommand(client, "[Error] Los puntos no pueden ser negativos.");
+        return Plugin_Handled;
+    }
+
+    // Buscar al jugador por nombre o SteamID
+    int target = FindTarget(client, targetArg, true);
+    if (target == -1)
+    {
+        ReplyToCommand(client, "[Error] Jugador no encontrado.");
+        return Plugin_Handled;
+    }
+
+    // Obtener la SteamID del jugador
+    char steamID[32];
+    GetClientAuthId(target, AuthId_Steam2, steamID, sizeof(steamID));
+
+    // Construir la consulta SQL usando la SteamID
+    char query[256];
+    Format(query, sizeof(query), SQL_UPDATE_ADMIN_POINTS, newPoints, steamID);
+
+    // Ejecutar la consulta
+    if (ExecuteQuery(query))
+    {
+        playersdata[target].g_Points = newPoints;
+        if(g_Config.use_hud!=0){
+            ShowLevelProgress(target);
+        }
+
+        ReplyToCommand(client, "[Éxito] Se han actualizado los puntos de %N a %d.", target, newPoints);
+    }
+    else
+    {
+        ReplyToCommand(client, "[Error] No se pudo actualizar los puntos.");
+    }
+
+    return Plugin_Handled;
+}
 
 
 // Función para ejecutar consultas
@@ -227,104 +475,195 @@ void ImprimirNiveles(int client)
     }
 }
 
-
-
-
-
-
-// Esto se ejecuta cuando inicia el plugin
-public void OnPluginStart()
+// Función auxiliar para cargar los valores de configuración
+void LoadConfigValues(KeyValues kv, ConfigData config)
 {
-    LoadLevelsConfig();
-	g_Config = LoadConfig();  // Cargar configuración al iniciar el plugin
-    RegConsoleCmd("sm_mylevel", Comando_MiNivel, "Muestra tu nivel actual");
-    RegConsoleCmd("sm_niveles", ComandoNiveles, "Muestra los niveles en la consola.");
-    RegAdminCmd("sm_hud", Command_PrintMessage, ADMFLAG_GENERIC);
-    HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
-    HookEvent("player_spawn", Event_PlayerSpawn, EventHookMode_Pre);
-    HookEvent("teamplay_round_win", Evento_RondaGanada, EventHookMode_Post);
-
-	g_DB = SQL_Connect("playerstats", false, g_DBError, sizeof(g_DBError));
-	
-	if (g_DB == null) {
-	    PrintToServer("Could not connect to 'playerstats': %s", g_DBError);
-	    return;
-	}
-
-    else
-    {
-        createInitialBd();
-    }
+    config.use_hud = kv.GetNum("use_hud", 0);    
+    config.puntosg_PlayerKills = kv.GetNum("puntosg_PlayerKills", 100);
+    config.puntosg_PlayerDeaths = kv.GetNum("puntosg_PlayerDeaths", 100); 
+    config.puntosg_PlayerSuicides= kv.GetNum("puntosg_PlayerSuicides", 100);
+    config.puntosg_PlayerHeadshots  = kv.GetNum("puntosg_PlayerHeadshots", 100);  
+    config.puntosg_PlayerLevel= kv.GetNum("puntosg_PlayerLevel", 100);
+    config.puntosg_dominando = kv.GetNum("puntosg_dominando", 100); 
+    config.puntosg_dominado = kv.GetNum("puntosg_dominado", 100);        
+    config.puntosg_assist= kv.GetNum("puntosg_assist", 100);
+    config.puntosg_roundWins= kv.GetNum("puntosg_roundWins", 100);
+    config.puntosg_roundLose= kv.GetNum("puntosg_roundLose", 100);
+    config.puntosbackstabEvent= kv.GetNum("puntosbackstabEvent", 100);
+    config.puntosburningEvent= kv.GetNum("puntosburningEvent", 100);
+    config.puntossuicideEvent= kv.GetNum("puntossuicideEvent", 100);
+    config.puntostauntHadoukenEvent= kv.GetNum("puntostauntHadoukenEvent", 100);
+    config.puntosburningFlareEvent = kv.GetNum("puntosburningFlareEvent", 100);
+    config.puntostauntHighNoonEvent = kv.GetNum("puntostauntHighNoonEvent", 100);
+    config.puntostauntGrandSlamEvent = kv.GetNum("puntostauntGrandSlamEvent", 100);
+    config.puntospenetrateMyTeamEvent = kv.GetNum("puntospenetrateMyTeamEvent", 100);
+    config.puntospenetrateHeadshotEvent = kv.GetNum("puntospenetrateHeadshotEvent", 100);
+    config.puntostelefragEvent = kv.GetNum("puntostelefragEvent", 100);
+    config.puntosflyingBurnEvent = kv.GetNum("puntosflyingBurnEvent", 100);
+    config.puntospumpkinBombEvent = kv.GetNum("puntospumpkinBombEvent", 100);
+    config.puntosdecapitationEvent = kv.GetNum("puntosdecapitationEvent", 100);
+    config.puntosshotgunRevengeCritEvent = kv.GetNum("puntosshotgunRevengeCritEvent", 100);
+    config.puntosfishKillEvent = kv.GetNum("puntosfishKillEvent", 100);
+    config.puntostauntAllclassGuitarRiffEvent = kv.GetNum("puntostauntAllclassGuitarRiffEvent", 100);
+    config.puntoskartEvent = kv.GetNum("puntoskartEvent", 100);
+    config.puntosdragonsFuryIgniteEvent = kv.GetNum("puntosdragonsFuryIgniteEvent", 100);
+    config.puntosslapKillEvent = kv.GetNum("puntosslapKillEvent", 100);
+    config.puntosaxtinguishBoosterEvent= kv.GetNum("puntosaxtinguishBoosterEvent", 100);
+    config.puntosg_ObjectsDestroyed = kv.GetNum("puntosg_ObjectsDestroyed", 100);
+    config.puntosg_BuildingsDestroyed = kv.GetNum("puntosg_BuildingsDestroyed", 100);
+    config.puntosg_EventsAssisted = kv.GetNum("puntosg_EventsAssisted", 100);
 }
 
-
-
-// Función que carga la configuración y la devuelve
 ConfigData LoadConfig()
 {
     ConfigData config;
 
-    char path[PLATFORM_MAX_PATH];
-    BuildPath(Path_SM, path, sizeof(path), "configs/playerstats.cfg");
+    // Obtener el nombre del mapa actual usando GetCurrentMap
+    char mapName[128];
+    GetCurrentMap(mapName, sizeof(mapName));
 
-    KeyValues kv = new KeyValues("playerstats");
+    // Buscar si el mapa contiene un guion bajo
+    int underscoreIndex = StrContains(mapName, "_", true); // Buscar guion bajo
 
-    if (!kv.ImportFromFile(path))
+    // Si encontramos un guion bajo, extraemos el prefijo
+    char prefix[64];
+    if (underscoreIndex != -1)
     {
-        LogError("No se pudo cargar el archivo de configuración: %s", path);
-        delete kv;
-
-        // Devolver valores por defecto si no hay archivo
-        config.puntosKill = 100;
-        config.puntosAssist = 50;
-        config.puntosHeadshot = 150;
-        config.puntosGanarRonda = 250;
-        config.puntosSuicide = 250;
-        config.puntosDeath = 100;
-        
-        return config;
+        // Copiar el prefijo antes del guion bajo
+        strcopy(prefix, sizeof(prefix), mapName);
+        prefix[underscoreIndex] = '\0'; // Terminamos el prefijo en el guion bajo
+    }
+    else
+    {
+        // Si no encontramos un guion bajo, usamos el nombre completo como prefijo
+        strcopy(prefix, sizeof(prefix), mapName);
     }
 
-    // Leer valores del archivo
-    config.puntosKill = kv.GetNum("puntos_kill", 100);
-    config.puntosAssist = kv.GetNum("puntos_assist", 50);
-    config.puntosHeadshot = kv.GetNum("puntos_headshot", 150);
-    config.puntosGanarRonda = kv.GetNum("puntos_ganar_ronda", 250);
-    config.puntosSuicide = kv.GetNum("puntos_autokills", 250);
-    config.puntosDeath = kv.GetNum("puntos_deaths", 250);
-    
+    // Crear la ruta para el archivo de configuración específico del mapa
+    char mapConfigPath[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, mapConfigPath, sizeof(mapConfigPath), "configs/playerstatsmaps/%s_.cfg", prefix);
+
+    // Verificar si existe un archivo de configuración para el prefijo del mapa
+    KeyValues kv = new KeyValues("playerstats");
+
+    // Intentamos cargar la configuración específica del mapa
+    if (kv.ImportFromFile(mapConfigPath))  // Si el archivo específico del mapa existe
+    {
+        LogMessage("Cargando configuración específica del mapa: %s", mapConfigPath);
+        LoadConfigValues(kv, config); // Cargar valores del archivo específico del mapa
+    }
+    else  // Si el archivo específico del mapa no existe, cargar la configuración global
+    {
+        LogMessage("No se encontró configuración para el prefijo del mapa. Cargando configuración global.");
+
+        // Cargar la configuración global
+        char globalConfigPath[PLATFORM_MAX_PATH];
+        BuildPath(Path_SM, globalConfigPath, sizeof(globalConfigPath), "configs/playerstats.cfg");
+
+        if (!kv.ImportFromFile(globalConfigPath))  // Si no se puede cargar el archivo global
+        {
+            LogError("No se pudo cargar el archivo de configuración global: %s", globalConfigPath);
+
+            // Valores predeterminados si no se puede cargar el archivo
+            config.use_hud = 0;
+            config.puntosg_PlayerKills = 20;
+            config.puntosg_PlayerDeaths = 20; 
+            config.puntosg_PlayerSuicides = 20;
+            config.puntosg_PlayerHeadshots = 20;  
+            config.puntosg_PlayerLevel = 20;
+            config.puntosg_dominando = 20;
+            config.puntosg_dominado = 20;       
+            config.puntosg_assist = 20;
+            config.puntosg_roundWins = 20;
+            config.puntosg_roundLose = 20;
+            config.puntosbackstabEvent = 20;
+            config.puntosburningEvent = 20;
+            config.puntossuicideEvent = 20;
+            config.puntostauntHadoukenEvent = 20;
+            config.puntosburningFlareEvent = 20;
+            config.puntostauntHighNoonEvent = 20;
+            config.puntostauntGrandSlamEvent = 20;
+            config.puntospenetrateMyTeamEvent = 20;
+            config.puntospenetrateHeadshotEvent = 20;
+            config.puntostelefragEvent = 20;
+            config.puntosflyingBurnEvent = 20;
+            config.puntospumpkinBombEvent = 20;
+            config.puntosdecapitationEvent = 20;
+            config.puntosshotgunRevengeCritEvent = 20;
+            config.puntosfishKillEvent = 20;
+            config.puntostauntAllclassGuitarRiffEvent = 20;
+            config.puntoskartEvent = 20;
+            config.puntosdragonsFuryIgniteEvent = 20;
+            config.puntosslapKillEvent = 20;
+            config.puntosaxtinguishBoosterEvent = 20;
+            config.puntosg_ObjectsDestroyed = 20;
+            config.puntosg_BuildingsDestroyed = 20;
+            config.puntosg_EventsAssisted = 20;
+
+        }
+        else
+        {
+            LoadConfigValues(kv, config); // Cargar valores del archivo global
+        }
+    }
+
+    // Liberar la memoria de la variable KeyValues
     delete kv;
+
     return config;
 }
 
 
+
+
+// Timer para actualizar el HUD cada 5 segundos
+public Action Timer_UpdateHUD(Handle timer, any userid)
+{
+    int client = GetClientOfUserId(userid);
+    if (!IsValidClient(client) || !IsPlayerAlive(client))
+    {
+        g_hHudTimer[client] = INVALID_HANDLE;
+        return Plugin_Stop;  // Eliminamos el timer si el jugador ya no es válido o está muerto
+    }
+    if(g_Config.use_hud!=0){
+        ShowLevelProgress(client);
+    }
+
+    return Plugin_Continue;
+}
+// Muestra el mensaje en el HUD
+// Muestra el mensaje en el HUD
 void ShowHudMessage(int client, const char[] message)
 {
-    if (g_hHudSync == null)
+    if (!IsValidClient(client) || !IsPlayerAlive(client)) return;  // No mostramos el HUD si está muerto
+
+    if (g_hHudSync == INVALID_HANDLE)
     {
         g_hHudSync = CreateHudSynchronizer();
         if (g_hHudSync == INVALID_HANDLE)
         {
-            ReplyToCommand(client, "Failed to create HUD synchronizer.");
+            PrintToServer("[HUD ERROR] No se pudo crear el HUD synchronizer.");
             return;
         }
     }
 
-    SetHudTextParams(0.01, 0.1, 10000.0, 255, 255, 255, 255, 0);
+    SetHudTextParams(0.01, 0.1, 10.0, 255, 255, 255, 255, 0);
     ShowSyncHudText(client, g_hHudSync, message);
 }
 
 
-// Este es el evento para cuando un player hace respawn
+// Llamar a ShowLevelProgress cuando el jugador haga respawn
 public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
-    int client_id = GetEventInt(event, "userid");
-    int client = GetClientOfUserId(client_id);
+    int client = GetClientOfUserId(event.GetInt("userid"));
 
-    CreateTimer(2.0, Timer_ShowSecondMessage, client);
-
+    if (IsValidClient(client) && IsPlayerAlive(client))
+    {
+        if(g_Config.use_hud!=0){
+            ShowLevelProgress(client);
+        }
+    }
 }
-
 
 
 
@@ -350,14 +689,16 @@ bool CheckIfPlayerExists(const char[] steamId)
 void CreateNewPlayerInDatabase(const char[] steamId, const char[] playerName, const char[] steamId64)
 {
     // Crear la consulta SQL para insertar el nuevo jugador
-    char query[512];
+    char query[2000];
 	// Obtener el timestamp actual y formatearlo como una cadena
 	int currentTimestamp = GetTime();
 	char datetime[32];
 	FormatTime(datetime, sizeof(datetime), "%Y-%m-%d %H:%M:%S", currentTimestamp);
 	
 	// Formatear la consulta para insertar en la base de datos
-	Format(query, sizeof(query), "INSERT INTO ranks_players (points, steamid, steamid64, name, kills, deaths, suicides, headshots, level, dominations, first_join_date, play_time_seconds, rounds_wins, rounds_lose) VALUES (0, '%s', '%s', '%s', 0, 0, 0, 0, 0, 0, '%s', 0.0, 0, 0)", steamId, steamId64, playerName, datetime);
+	Format(query, sizeof(query), SQL_PLAYER_NOT_EXISTS, steamId, steamId64, playerName, datetime);
+
+
 
 
     // Usar la función ExecuteQuery para ejecutar la consulta
@@ -373,8 +714,8 @@ void CreateNewPlayerInDatabase(const char[] steamId, const char[] playerName, co
 
 bool LoadPlayerDataFromDatabase(int client, const char[] steamId)
 {
-    char query[256];
-    Format(query, sizeof(query), "SELECT kills, deaths, suicides, headshots, level, dominations, play_time_seconds, points, rounds_wins, rounds_lose FROM ranks_players WHERE steamid = '%s'", steamId);
+    char query[2000]; // Aumentamos el tamaño del buffer para la consulta
+    Format(query, sizeof(query), SQL_SELECT_INFO, steamId);
 
     // Ejecutar la consulta
     DBResultSet hResult = SQL_Query(g_DB, query);
@@ -384,25 +725,52 @@ bool LoadPlayerDataFromDatabase(int client, const char[] steamId)
         return false;
     }
 
-	if (SQL_FetchRow(hResult)) {
-	    playersdata[client].g_PlayerKills = SQL_FetchInt(hResult, 0);
-	    playersdata[client].g_PlayerDeaths = SQL_FetchInt(hResult, 1);
-	    playersdata[client].g_PlayerSuicides = SQL_FetchInt(hResult, 2);
-	    playersdata[client].g_PlayerHeadshots = SQL_FetchInt(hResult, 3);
-	    playersdata[client].g_PlayerLevel = SQL_FetchInt(hResult, 4);
-	    playersdata[client].g_PlayerDominations = SQL_FetchInt(hResult, 5);
-	    playersdata[client].g_PlayerPlayTime = SQL_FetchFloat(hResult, 6);
-	    playersdata[client].g_Points = SQL_FetchInt(hResult, 7);
+    if (SQL_FetchRow(hResult)) {
+        playersdata[client].g_PlayerKills = SQL_FetchInt(hResult, 0);
+        playersdata[client].g_PlayerDeaths = SQL_FetchInt(hResult, 1);
+        playersdata[client].g_PlayerSuicides = SQL_FetchInt(hResult, 2);
+        playersdata[client].g_PlayerHeadshots = SQL_FetchInt(hResult, 3);
+        playersdata[client].g_PlayerLevel = SQL_FetchInt(hResult, 4);
+        playersdata[client].g_dominando = SQL_FetchInt(hResult, 5);
+        playersdata[client].g_PlayerPlayTime = SQL_FetchFloat(hResult, 6);
+        playersdata[client].g_Points = SQL_FetchInt(hResult, 7);
         playersdata[client].g_roundWins = SQL_FetchInt(hResult, 8);
         playersdata[client].g_roundLose = SQL_FetchInt(hResult, 9);
-	    delete hResult;
-	    return true;
-	}
+        playersdata[client].g_dominado = SQL_FetchInt(hResult, 10);
+        playersdata[client].g_assist = SQL_FetchInt(hResult, 11);
+        playersdata[client].backstabEvent = SQL_FetchInt(hResult, 12);
+        playersdata[client].burningEvent = SQL_FetchInt(hResult, 13);
+        playersdata[client].suicideEvent = SQL_FetchInt(hResult, 14);
+        playersdata[client].tauntHadoukenEvent = SQL_FetchInt(hResult, 15);
+        playersdata[client].burningFlareEvent = SQL_FetchInt(hResult, 16);
+        playersdata[client].tauntHighNoonEvent = SQL_FetchInt(hResult, 17);
+        playersdata[client].tauntGrandSlamEvent = SQL_FetchInt(hResult, 18);
+        playersdata[client].penetrateMyTeamEvent = SQL_FetchInt(hResult, 19);
+        playersdata[client].penetrateHeadshotEvent = SQL_FetchInt(hResult, 20);
+        playersdata[client].telefragEvent = SQL_FetchInt(hResult, 21);
+        playersdata[client].flyingBurnEvent = SQL_FetchInt(hResult, 22);
+        playersdata[client].pumpkinBombEvent = SQL_FetchInt(hResult, 23);
+        playersdata[client].decapitationEvent = SQL_FetchInt(hResult, 24);
+        playersdata[client].shotgunRevengeCritEvent = SQL_FetchInt(hResult, 25);
+        playersdata[client].fishKillEvent = SQL_FetchInt(hResult, 26);
+        playersdata[client].tauntAllclassGuitarRiffEvent = SQL_FetchInt(hResult, 27);
+        playersdata[client].kartEvent = SQL_FetchInt(hResult, 28);
+        playersdata[client].dragonsFuryIgniteEvent = SQL_FetchInt(hResult, 29);
+        playersdata[client].slapKillEvent = SQL_FetchInt(hResult, 30);
+        playersdata[client].axtinguishBoosterEvent = SQL_FetchInt(hResult, 31);
+        playersdata[client].g_ObjectsDestroyed = SQL_FetchInt(hResult, 32);
+        playersdata[client].g_BuildingsDestroyed = SQL_FetchInt(hResult, 33);
+        playersdata[client].g_EventsAssisted = SQL_FetchInt(hResult, 34);
+
+        delete hResult;
+        return true;
+    }
 
     // Liberar el resultado si no hay datos
     delete hResult;
     return false; // No se encontraron datos para el jugador
 }
+
 
 
 bool IsValidClient(int client, bool replaycheck = true)
@@ -441,12 +809,16 @@ void CalcularNivel(int client)
         // Si no hay niveles cargados, asignar valores predeterminados
         playersdata[client].g_PlayerLevel = 0;
         strcopy(playersdata[client].g_LevelName, 64, "Desconocido");
+        playersdata[client].g_points_required = 0;
+        playersdata[client].g_points_lastlevel = 0;
         return;
     }
 
     // Variables para el cálculo
     int nivel = 0;
     char nombreNivel[64]; // Ajustar tamaño según sea necesario
+    int puntosRequeridos = 0;
+    int puntosUltimoNivel = 0;
 
     // Iterar sobre los niveles cargados
     for (int i = 0; i < nivelesCargados; i++)
@@ -456,6 +828,8 @@ void CalcularNivel(int client)
         {
             nivel = i + 1;  // El nivel está basado en el índice
             strcopy(nombreNivel, 64, nivelesNombres[i]);
+            puntosRequeridos = nivelesPuntos[i + 1] - nivelesPuntos[i];  // Puntos necesarios para el siguiente nivel
+            puntosUltimoNivel = nivelesPuntos[i];  // Últimos puntos alcanzados
         }
         else
         {
@@ -464,16 +838,60 @@ void CalcularNivel(int client)
     }
 
     // Asignar el nivel y nombre calculado a las variables globales del jugador
-    playersdata[client].g_PlayerLevel = nivel;
+    playersdata[client].g_PlayerLevel = nivel-1;
     strcopy(playersdata[client].g_LevelName, 64, nombreNivel);
+    playersdata[client].g_points_required = puntosRequeridos;
+    playersdata[client].g_points_lastlevel = puntosUltimoNivel;
+}
+
+void ShowLevelProgress(int client)
+{
+    if (!IsValidClient(client) || !IsPlayerAlive(client)) return;  // Verificamos que el jugador esté vivo
+
+    CalcularNivel(client);
+    
+    int progreso = 0;
+    if (playersdata[client].g_points_required > 0)
+    {
+        progreso = (playersdata[client].g_Points - playersdata[client].g_points_lastlevel) * 100 / playersdata[client].g_points_required;
+    }
+
+    // Si el progreso no cambió, evitamos actualizar el HUD innecesariamente
+    if (g_LastProgress[client] == progreso)
+    {
+        return;
+    }
+    g_LastProgress[client] = progreso;  // Guardamos el último progreso mostrado
+
+    char message[256];
+    Format(message, sizeof(message), "Nivel %d: %s\nProgreso: %d%%", 
+        playersdata[client].g_PlayerLevel, 
+        playersdata[client].g_LevelName, 
+        progreso
+    );
+
+    // Si ya hay un HUD activo, eliminamos el anterior antes de crear uno nuevo
+    if (g_hHudTimer[client] != INVALID_HANDLE)
+    {
+        KillTimer(g_hHudTimer[client]);
+        g_hHudTimer[client] = INVALID_HANDLE;
+    }
+
+    // Crear un nuevo HUD que se actualizará cada 5 segundos solo si el jugador sigue vivo
+    g_hHudTimer[client] = CreateTimer(5.0, Timer_UpdateHUD, GetClientUserId(client), TIMER_REPEAT);
+
+    // Mostrar el mensaje inicial
+    ShowHudMessage(client, message);
 }
 
 
 public void OnClientPutInServer(int client)
 {
+
 	if (!IsValidClient(client)) return;  // Evita que bots reciban puntos
 	
-	
+    char buffer[256];  // Se declara una sola vez al inicio
+
     playersdata[client].g_PlayerStartTime = GetClientTime(client); 
 
     // Obtiene el nombre y la SteamID del jugador
@@ -484,13 +902,13 @@ public void OnClientPutInServer(int client)
     if (!GetClientAuthId(client, AuthId_Steam2, steamId, sizeof(steamId), true) ||
         !GetClientAuthId(client, AuthId_SteamID64, steamId64, sizeof(steamId64), true))
     {
-        PrintToChatAll("Jugador conectado: %s (SteamID no disponible)", playerName);
-
+        Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "player_invalid", LANG_SERVER);
+        MC_PrintToChatAll("%s", buffer);
         return;
     }
+    Format(buffer, sizeof(buffer), "%T", "player_connect", LANG_SERVER, playerName, steamId);
+    MC_PrintToChatAll("%s",buffer);
 
-    // Mostrar información en el servidor
-    PrintToChatAll("Jugador conectado: %s (SteamID: %s)", playerName, steamId);
 
     if (!CheckIfPlayerExists(steamId))
         CreateNewPlayerInDatabase(steamId, playerName, steamId64);
@@ -508,11 +926,45 @@ public void OnClientPutInServer(int client)
 void SavePlayerDataToDatabase(int client, const char[] steamId, float elapsedTime)
 {
     // Crear la consulta SQL para actualizar los datos del jugador
-    char query[512];
-	Format(query, sizeof(query), 
-	    "UPDATE ranks_players SET kills = %d, deaths = %d, suicides = %d, headshots = %d, level = %d, dominations = %d, play_time_seconds = play_time_seconds + %.2f, points = %d WHERE steamid = '%s'", 
-	    playersdata[client].g_PlayerKills, playersdata[client].g_PlayerDeaths, playersdata[client].g_PlayerSuicides, 
-	    playersdata[client].g_PlayerHeadshots, playersdata[client].g_PlayerLevel, playersdata[client].g_PlayerDominations, elapsedTime, playersdata[client].g_Points, steamId);
+    char query[2000];
+	Format(query, sizeof(query),
+           SQL_UPDATE_INFO,
+        playersdata[client].g_PlayerKills,
+        playersdata[client].g_PlayerDeaths, 
+        playersdata[client].g_PlayerSuicides, 
+        playersdata[client].g_PlayerHeadshots, 
+        playersdata[client].g_PlayerLevel, 
+        playersdata[client].g_dominando, 
+        elapsedTime, 
+        playersdata[client].g_Points,
+        playersdata[client].g_roundWins, 
+        playersdata[client].g_roundLose, 
+        playersdata[client].g_dominado,
+        playersdata[client].g_assist,
+        playersdata[client].backstabEvent,
+        playersdata[client].burningEvent,
+        playersdata[client].suicideEvent,
+        playersdata[client].tauntHadoukenEvent,
+        playersdata[client].burningFlareEvent,
+        playersdata[client].tauntHighNoonEvent,
+        playersdata[client].tauntGrandSlamEvent,
+        playersdata[client].penetrateMyTeamEvent,
+        playersdata[client].penetrateHeadshotEvent,
+        playersdata[client].telefragEvent,
+        playersdata[client].flyingBurnEvent,
+        playersdata[client].pumpkinBombEvent,
+        playersdata[client].decapitationEvent,
+        playersdata[client].shotgunRevengeCritEvent,
+        playersdata[client].fishKillEvent,
+        playersdata[client].tauntAllclassGuitarRiffEvent,
+        playersdata[client].kartEvent,
+        playersdata[client].dragonsFuryIgniteEvent,
+        playersdata[client].slapKillEvent,
+        playersdata[client].axtinguishBoosterEvent,
+        playersdata[client].g_ObjectsDestroyed,
+        playersdata[client].g_BuildingsDestroyed,
+        playersdata[client].g_EventsAssisted,
+        steamId);
 
     // Ejecutar la consulta
     if (!ExecuteQuery(query))
@@ -551,72 +1003,224 @@ public void OnClientDisconnect(int client)
     SavePlayerDataToDatabase(client, steamId, elapsedTime);
 }	
 
+void UpdatePlayerPoints(int player, int pointsChange) {
+    playersdata[player].g_Points += pointsChange;
+    if (playersdata[player].g_Points < 0) {
+        playersdata[player].g_Points = 0;
+    }
+}
 
-// En esta parte el hook definido arriba ara las acciones sobre despues de la muerte de un usuario , sumara o restara la kill y muerte de los usuarios respectivamente
-public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
-{
+public void OnPlayerDeathEventsStocks(Event event, const char[] name, bool dontBroadcast) {
+    // Obtención de datos básicos del evento
+    int victim = GetClientOfUserId(event.GetInt("userid"));
+    int attacker = GetClientOfUserId(event.GetInt("attacker"));
+    int assister = GetClientOfUserId(event.GetInt("assister"));
+    int customkill = event.GetInt("customkill");
+    int deathFlags = event.GetInt("death_flags");  // Obtenemos las banderas de la muerte
     char weapon[64];
-    int victimId = event.GetInt("userid");
-    int attackerId = event.GetInt("attacker");// Convertir a booleano seguro
-    bool headshot = GetEventBool(event, "headshot");
-
     event.GetString("weapon", weapon, sizeof(weapon));
 
     // Variable para los nombres
     char nameAttacker[64];
     char nameVictim[64];
-    int victim = GetClientOfUserId(victimId);
-    int attacker = GetClientOfUserId(attackerId);
     GetClientName(attacker, nameAttacker, sizeof(nameAttacker));
     GetClientName(victim, nameVictim, sizeof(nameVictim));
 
-    // Verifica si el jugador que murió es el mismo que el atacante
-    if (victim == attacker)
-    {
-        playersdata[victim].g_PlayerSuicides += 1; // Incrementa los suicidios del jugador que murió
-        playersdata[victim].g_Points -= g_Config.puntosSuicide;
-        if (playersdata[victim].g_Points < 0){
-        	playersdata[victim].g_Points = 0;
-        }
-    }
-    else
-    {
+    if (victim != attacker){
         playersdata[victim].g_PlayerDeaths += 1;
-        playersdata[attacker].g_PlayerKills += 1; // Incrementa las muertes del jugador que murió
-        playersdata[attacker].g_Points += g_Config.puntosKill;
-        playersdata[victim].g_Points -= g_Config.puntosDeath;
-         if (playersdata[victim].g_Points < 0){
-        	playersdata[victim].g_Points = 0;
-        }
+        playersdata[attacker].g_PlayerKills += 1; 
+        playersdata[assister].g_assist += 1; 
+        playersdata[attacker].g_Points += g_Config.puntosg_PlayerKills;
+        UpdatePlayerPoints(attacker, g_Config.puntosg_PlayerKills);
+        UpdatePlayerPoints(assister, -g_Config.puntosg_PlayerKills);
+        UpdatePlayerPoints(victim, -g_Config.puntosg_PlayerKills);
     }
-    PrintToConsole(attacker,"dadadadad : %d", headshot);
-   
-    char mensaje[64];
-    Format(mensaje, sizeof(mensaje), "points: %d, muertes %d, suicidios: %d, kills : %d y tiempo: %.2f min", playersdata[attacker].g_Points, playersdata[attacker].g_PlayerDeaths, playersdata[attacker].g_PlayerSuicides, playersdata[attacker].g_PlayerKills, playersdata[attacker].g_PlayerPlayTime/60);
-    ShowHudMessage(attacker, mensaje);
 
-    Format(mensaje, sizeof(mensaje), "points: %d, muertes %d, suicidios: %d, kills : %d y tiempo: %.2f min", playersdata[victim].g_Points, playersdata[victim].g_PlayerDeaths, playersdata[victim].g_PlayerSuicides, playersdata[victim].g_PlayerKills, playersdata[victim].g_PlayerPlayTime/60);
-    ShowHudMessage(victim, mensaje);
+    // Verificamos si el atacante dominó al jugador
+    if (attacker > 0 && deathFlags & TF_DEATHFLAG_KILLERDOMINATION) {
+        PrintToChatAll("¡%N dominó a %N!", attacker, victim);
+        playersdata[attacker].g_dominando += 1;  // Aumentamos el contador de dominaciones
+        playersdata[victim].g_dominado += 1;  // Incrementamos un contador en la víctima
+    }
 
-    // Crea un temporizador de 3 segundos para mostrar un segundo mensaje
-    CreateTimer(3.0, Timer_ShowSecondMessage, victim);
+    // Manejamos los eventos personalizados de muertes
+    switch (customkill) {
+        case TF_CUSTOM_HEADSHOT: {
+            PrintToChatAll("¡%N hizo un headshot a %N!", attacker, victim);
+            playersdata[attacker].g_PlayerHeadshots += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntosg_PlayerHeadshots);
+            return;
+        }
+        case TF_CUSTOM_BACKSTAB: {
+            PrintToChatAll("¡%N apuñaló por la espalda a %N!", attacker, victim);
+            playersdata[attacker].backstabEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntosbackstabEvent);
+            return;
+        }
+        case TF_CUSTOM_BURNING: {
+            PrintToChatAll("¡%N quemó a %N con fuego!", attacker, victim);
+            playersdata[attacker].burningEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntosburningEvent);
+            return;
+        }
+        case TF_CUSTOM_SUICIDE: {
+            PrintToChatAll("¡%N se suicidó!", victim);
+            playersdata[victim].g_PlayerSuicides += 1; // Incrementa los suicidios del jugador
+            UpdatePlayerPoints(attacker, -g_Config.puntosg_PlayerSuicides);
+            return;
+        }
+        case TF_CUSTOM_TAUNT_HADOUKEN: {
+            PrintToChatAll("¡%N mató a %N con un Hadouken!", attacker, victim);
+            playersdata[attacker].tauntHadoukenEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntostauntHadoukenEvent);
+            return;
+        }
+        case TF_CUSTOM_BURNING_FLARE: {
+            PrintToChatAll("¡%N quemó a %N con una flecha incendiaria!", attacker, victim);
+            playersdata[attacker].burningFlareEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntosburningFlareEvent);
+            return;
+        }
+        case TF_CUSTOM_TAUNT_HIGH_NOON: {
+            PrintToChatAll("¡%N mató a %N con su taunt High Noon!", attacker, victim);
+            playersdata[attacker].tauntHighNoonEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntostauntHighNoonEvent);
+            return;
+        }
+        case TF_CUSTOM_TAUNT_GRAND_SLAM: {
+            PrintToChatAll("¡%N hizo un Grand Slam con taunt contra %N!", attacker, victim);
+            playersdata[attacker].tauntGrandSlamEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntostauntGrandSlamEvent);
+            return;
+        }
+        case TF_CUSTOM_PENETRATE_MY_TEAM: {
+            PrintToChatAll("¡%N disparó a través de su propio equipo y mató a %N!", attacker, victim);
+            playersdata[attacker].penetrateMyTeamEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntospenetrateMyTeamEvent);
+            return;
+        }
+        case TF_CUSTOM_PENETRATE_HEADSHOT: {
+            PrintToChatAll("¡%N hizo un headshot penetrante a través de las líneas enemigas, matando a %N!", attacker, victim);
+            playersdata[attacker].penetrateHeadshotEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntospenetrateHeadshotEvent);
+            return;
+        }
+        case TF_CUSTOM_TELEFRAG: {
+            PrintToChatAll("¡%N mató a %N con un telefrag!", attacker, victim);
+            playersdata[attacker].telefragEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntostelefragEvent);
+            return;
+        }
+        case TF_CUSTOM_FLYINGBURN: {
+            PrintToChatAll("¡%N quemó a %N mientras volaba!", attacker, victim);
+            playersdata[attacker].flyingBurnEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntosflyingBurnEvent);
+            return;
+        }
+        case TF_CUSTOM_PUMPKIN_BOMB: {
+            PrintToChatAll("¡%N mató a %N con una bomba de calabaza!", attacker, victim);
+            playersdata[attacker].pumpkinBombEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntospumpkinBombEvent);
+            return;
+        }
+        case TF_CUSTOM_DECAPITATION: {
+            PrintToChatAll("¡%N decapitó a %N!", attacker, victim);
+            playersdata[attacker].decapitationEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntosdecapitationEvent);
+            return;
+        }
+        case TF_CUSTOM_SHOTGUN_REVENGE_CRIT: {
+            PrintToChatAll("¡%N se vengó y mató a %N con un disparo crítico de escopeta!", attacker, victim);
+            playersdata[attacker].shotgunRevengeCritEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntosshotgunRevengeCritEvent);
+            return;
+        }
+        case TF_CUSTOM_FISH_KILL: {
+            PrintToChatAll("¡%N mató a %N con un pez!", attacker, victim);
+            playersdata[attacker].fishKillEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntosfishKillEvent);
+            return;
+        }
+        case TF_CUSTOM_TAUNT_ALLCLASS_GUITAR_RIFF: {
+            PrintToChatAll("¡%N mató a %N con una guitarra en su taunt de todas las clases!", attacker, victim);
+            playersdata[attacker].tauntAllclassGuitarRiffEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntostauntAllclassGuitarRiffEvent);
+            return;
+        }
+        case TF_CUSTOM_KART: {
+            PrintToChatAll("¡%N atropelló a %N con un Kart!", attacker, victim);
+            playersdata[attacker].kartEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntoskartEvent);
+            return;
+        }
+        case TF_CUSTOM_DRAGONS_FURY_IGNITE: {
+            PrintToChatAll("¡%N mató a %N con un ataque de fuego de Dragon's Fury!", attacker, victim);
+            playersdata[attacker].dragonsFuryIgniteEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntosdragonsFuryIgniteEvent);
+            return;
+        }
+        case TF_CUSTOM_SLAP_KILL: {
+            PrintToChatAll("¡%N mató a %N con una bofetada!", attacker, victim);
+            playersdata[attacker].slapKillEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntosslapKillEvent);
+            return;
+        }
+        case TF_CUSTOM_AXTINGUISHER_BOOSTED: {
+            PrintToChatAll("¡%N mató a %N con un extintor mejorado!", attacker, victim);
+            playersdata[attacker].axtinguishBoosterEvent += 1;
+            UpdatePlayerPoints(attacker,g_Config.puntosaxtinguishBoosterEvent);
+            return;
+        }
+        default:
+            return;
+    }
+
 }
 
-// Este es solamente un timer para ejecutar la función que imprimirá el hud
-public Action Timer_ShowSecondMessage(Handle timer, any client)
-{
-    char mensaje[64];
-    Format(mensaje, sizeof(mensaje), "points: %d, muertes %d, suicidios: %d, kills : %d y tiempo: %.2f min", playersdata[client].g_Points, playersdata[client].g_PlayerDeaths, playersdata[client].g_PlayerSuicides, playersdata[client].g_PlayerKills, playersdata[client].g_PlayerPlayTime/60);
-    ShowHudMessage(client, mensaje);
+public void OnObjectDestroyed(Event event, const char[] name, bool dontBroadcast) {
+    int owner = GetClientOfUserId(event.GetInt("userid")); // Propietario del objeto
+    int attacker = GetClientOfUserId(event.GetInt("attacker")); // Jugador que destruyó el objeto
+    int assister = GetClientOfUserId(event.GetInt("assister")); // Jugador que asistió (si hay uno)
+    char weapon[64];
+    event.GetString("weapon", weapon, sizeof(weapon)); // Arma usada para destruir el objeto
+    bool wasBuilding = event.GetBool("was_building"); // ¿Era un objeto en construcción?
 
-    // Devuelve Plugin_Stop para que el temporizador no se repita
-    return Plugin_Stop;
+    // Obtener los nombres de los jugadores
+    char nameAttacker[64], nameAssister[64], nameOwner[64];
+    GetClientName(attacker, nameAttacker, sizeof(nameAttacker));
+    if (assister > 0) GetClientName(assister, nameAssister, sizeof(nameAssister));
+    GetClientName(owner, nameOwner, sizeof(nameOwner));
+
+    // Mensaje de destrucción
+    if (wasBuilding) {
+        PrintToChatAll("¡%N destruyó una construcción de %N con %s!", attacker, owner, weapon);
+    } else {
+        PrintToChatAll("¡%N destruyó un objeto de %N con %s!", attacker, owner, weapon);
+    }
+
+    // Registra las estadísticas para el atacante
+    playersdata[attacker].g_ObjectsDestroyed += 1; // Aumenta el contador de destrucción de objetos
+    UpdatePlayerPoints(attacker, g_Config.puntosg_ObjectsDestroyed); // Puntos por destruir el objeto
+
+    // Si hay un asistente, registra su asistencia
+    if (assister > 0) {
+        playersdata[assister].g_assist += 1; // Aumenta el contador de asistencias
+        UpdatePlayerPoints(assister, g_Config.puntosg_assist); // Puntos por asistencia
+    }
+
+    // Si el objeto destruido es una construcción, se puede registrar de manera diferente si lo deseas
+    if (wasBuilding) {
+        // Agregar lógica especial si se destruyó una construcción, como contar puntos extra, etc.
+        playersdata[attacker].g_BuildingsDestroyed += 1;
+        UpdatePlayerPoints(assister, g_Config.puntosg_BuildingsDestroyed); // Puntos por asistencia
+    }
 }
 
 
 // Evento cuando un equipo gana una ronda
 public void Evento_RondaGanada(Event event, const char[] name, bool dontBroadcast)
 {
+    char buffer[256]; 
     int equipoGanador = event.GetInt("team"); // 2 = RED, 3 = BLU
     int equipoPerdedor = (equipoGanador == 2) ? 3 : 2; // Si ganó RED, perdió BLU y viceversa
 
@@ -628,12 +1232,16 @@ public void Evento_RondaGanada(Event event, const char[] name, bool dontBroadcas
         if (GetClientTeam(i) == equipoGanador) // Si el jugador está en el equipo ganador
         {
             playersdata[i].g_roundWins += 1; // Aumenta las rondas ganadas
-            PrintToChat(i, "🎉 ¡Has ganado esta ronda! Total de rondas ganadas: %d", playersdata[i].g_roundWins);
+            UpdatePlayerPoints(i,g_Config.puntosg_roundWins);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "Round_Wins", LANG_SERVER, playersdata[i].g_roundWins, g_Config.puntosg_roundWins);
+            MC_PrintToChat(i,buffer);
         }
         else if (GetClientTeam(i) == equipoPerdedor) // Si el jugador está en el equipo perdedor
         {
             playersdata[i].g_roundLose += 1; // Aumenta las rondas perdidas
-            PrintToChat(i, "😢 Perdiste esta ronda. Total de rondas perdidas: %d", playersdata[i].g_roundLose);
+            UpdatePlayerPoints(i,g_Config.puntosg_roundLose);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "Round_Lose", LANG_SERVER, playersdata[i].g_roundLose, g_Config.puntosg_roundLose);
+            MC_PrintToChat(i,buffer);
         }
     }
 }
@@ -641,6 +1249,12 @@ public void Evento_RondaGanada(Event event, const char[] name, bool dontBroadcas
 
 // ====[ COMMANDS ]============================================================
 
+// Comando para mostrar las estadísticas del jugador
+public Action Command_ShowStats(int client, int args)
+{
+    ShowPlayerStatsMenu(client);
+    return Plugin_Handled;
+}
 
 public Action ComandoNiveles(int client, int args)
 {
@@ -683,16 +1297,22 @@ public Action Comando_MiNivel(int client, int args)
 
 public Action Command_PrintMessage(int client , int args)
 {
-    ShowHudMessage(client, "hola");
+    char test[20];
+    test = "123";
+    char buffer[256]; 
+    Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "player_connect", LANG_SERVER, test, test);
+    MC_PrintToChatAll("%s", buffer);
+    char buffer2[256]; 
+    Format(buffer2, sizeof(buffer2), "%s %T", PLUGIN_PREFIX, "test", LANG_SERVER, test);
+    MC_PrintToChat(client,buffer2);
+    Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "player_invalid", LANG_SERVER);
+    MC_PrintToChatAll("%s", buffer);
     return Plugin_Handled;
 }
 
 public void OnMapStart()
 {
-	/**
-     * @note Precarga tus modelos, sonidos, etc. aquí.
-     * ¡No en OnConfigsExecuted! Hacerlo aquí evita problemas.
-     */
+    g_Config = LoadConfig();
 }
 
 public void OnPluginEnd()
