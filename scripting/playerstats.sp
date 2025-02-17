@@ -1260,6 +1260,7 @@ public void OnPlayerDeathEventsStocks(Event event, const char[] name, bool dontB
     int attacker = GetClientOfUserId(event.GetInt("attacker"));
     int assister = GetClientOfUserId(event.GetInt("assister"));
     int customkill = event.GetInt("customkill");
+    if (attacker==0) return;
     int deathFlags = event.GetInt("death_flags");  // Obtenemos las banderas de la muerte
     char weapon[64];
     char buffer[255];
@@ -1460,7 +1461,7 @@ public void OnPlayerDeathEventsStocks(Event event, const char[] name, bool dontB
             return;
         }
         default: {
-            if (victim != attacker){
+            if (victim != attacker || attacker!=0){
                 Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "kill_not_event", LANG_SERVER, attacker, victim);
                 MC_PrintToChat(attacker,buffer);
                 return;
