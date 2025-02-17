@@ -1,5 +1,11 @@
 "Phrases"
 {
+    "test"
+    {
+        "#format"   "{1:s}"
+        "es"        "{violet} Jugador conectado: {1}"
+        "en"        "{violet} Player connected: {1}"
+    }
     "player_invalid"
     {
         "es"        "{violet} Jugador conectado: (SteamID no disponible)"
@@ -13,13 +19,280 @@
         "en"        "{violet} Player connected: {1} (SteamID: {2})"
     }
 
-    "test"
+    "menu_title"
     {
-        "#format"   "{1:s}"
-        "es"        "{violet} Jugador conectado: {1}"
-        "en"        "{violet} Player connected: {1}"
+        "es"        "Estadísticas de Jugador"
+        "en"        "Player Statistics"
     }
 
+    "menu_points"
+    {
+        "#format"   "{1:d}"
+        "es"        "Puntos: {1}"
+        "en"        "Points: {1}"
+    }
+
+    "menu_playtime_hours"
+    {
+        "#format"   "{1:.2f}"
+        "es"        "Tiempo Jugado: {1} horas"
+        "en"        "Playtime: {1} hours"
+    }
+
+    "menu_playtime_minutes"
+    {
+        "#format"   "{1:.2f}"
+        "es"        "Tiempo Jugado: {1} minutos"
+        "en"        "Playtime: {1} minutes"
+    }
+
+    "menu_kills"
+    {
+        "#format"   "{1:d}"
+        "es"        "Kills: {1}"
+        "en"        "Kills: {1}"
+    }
+
+    "menu_deaths"
+    {
+        "#format"   "{1:d}"
+        "es"        "Muertes: {1}"
+        "en"        "Deaths: {1}"
+    }
+
+    "menu_suicides"
+    {
+        "#format"   "{1:d}"
+        "es"        "Suicidios: {1}"
+        "en"        "Suicides: {1}"
+    }
+
+    "menu_headshots"
+    {
+        "#format"   "{1:d}"
+        "es"        "Headshots: {1}"
+        "en"        "Headshots: {1}"
+    }
+
+    "menu_level"
+    {
+        "#format"   "{1:d}"
+        "es"        "Nivel: {1}"
+        "en"        "Level: {1}"
+    }
+
+    "menu_dominations"
+    {
+        "#format"   "{1:d}"
+        "es"        "Dominaciones: {1}"
+        "en"        "Dominations: {1}"
+    }
+
+    "menu_rounds_won"
+    {
+        "#format"   "{1:d}"
+        "es"        "Rondas Ganadas: {1}"
+        "en"        "Rounds Won: {1}"
+    }
+
+    "menu_rounds_lost"
+    {
+        "#format"   "{1:d}"
+        "es"        "Rondas Perdidas: {1}"
+        "en"        "Rounds Lost: {1}"
+    }
+    "command_not_admin"
+    {
+        "es"        "{black}[Error] {violet}No tienes permisos para usar este comando."
+        "en"        "{black}[Error] {violet}You do not have permission to use this command."
+    }
+    "setpoints_usage"
+    {
+        "es"        "{black}[Uso] {violet}!setpoints <{lawngreen}usuario{violet}> <{lawngreen}puntos{violet}>."
+        "en"        "{black}[Usage] {violet}!setpoints <{lawngreen}user{violet}> <{lawngreen}points{violet}>."
+    }
+    "negative_points"
+    {
+        "es"        "{black}[Error] {violet} Los puntos no pueden ser negativos."
+        "en"        "{black}[Error] {violet}Points cannot be negative."
+    }
+    "player_not_found"
+    {
+        "es"        "{black}[Error] {violet}Jugador no encontrado."
+        "en"        "{black}[Error] {violet}Player not found."
+    }
+    "points_ok"
+    {
+        "#format"   "{1:N},{2:d}"
+        "es"        "{black}[Éxito] {violet}Se han actualizado los puntos de {black}{1} {violet}a {black}{2}."
+        "en"        "{black}[Success] {lawngreen}{1}{black}'s {violet} points have been updated to {black}{2}."
+    }
+    "points_bad"
+    {
+        "es"        "{black}[Error] {violet}No se pudo actualizar los puntos."
+        "en"        "{black}[Error] {violet} Could not update points."
+    }
+    "headshot"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} hizo un headshot a {2}!"
+        "en"        "{1} scored a headshot on {2}!"
+    }
+    "backstabs"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} apuñaló por la espalda a {2}!"
+        "en"        "{1} backstabbed {2}!"
+    }
+    "burning"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} quemó a {2} con fuego!"
+        "en"        "{1} burned {2} with fire!"
+    }
+    "Suicides"
+    {
+        "#format"   "{1:N}"
+        "es"        "¡{1} se suicidó!"
+        "en"        "{1} committed suicide!"
+    }
+    "Hadouken"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} mató a {2} con un Hadouken!"
+        "en"        "{1} killed {2} with a Hadouken!"
+    }
+    "burningFlareEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} quemó a {2} con una flecha incendiaria!"
+        "en"        "{1} burned {2} with a flaming arrow!"
+    }
+    "kill_not_event"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} mató a {2}"
+        "en"        "{1} killed {2}"
+    }
+    "tauntHighNoonEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} mató a {2} con su taunt High Noon!"
+        "en"        "{1} killed {2} with their High Noon taunt!"
+    }
+    "slam"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} hizo un Grand Slam con taunt contra {2}!"
+        "en"        "{1} performed a Grand Slam taunt against {2}!"
+    }
+    "penetrateMyTeamEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} disparó a través de su propio equipo y mató a {2}!"
+        "en"        "{1} shot through their own team and killed {2}!"
+    }
+    "penetrateHeadshotEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} hizo un headshot penetrante a través de las líneas enemigas, matando a {2}!"
+        "en"        "{1} landed a penetrating headshot through enemy lines, killing {2}!"
+    }
+    "telefragEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} mató a {2} con un telefrag!"
+        "en"        "{1} telefragged {2}!"
+    }
+    "flyingBurnEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} quemó a {2} mientras volaba!"
+        "en"        "{1} burned {2} while flying!"
+    }
+    "pumpkinBombEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} mató a {2} con una bomba de calabaza!"
+        "en"        "{1} killed {2} with a pumpkin bomb!"
+    }
+    "decapitationEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} decapitó a {2}!"
+        "en"        "{1} decapitated {2}!"
+    }
+    "shotgunRevengeCritEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} se vengó y mató a {2} con un disparo crítico de escopeta!"
+        "en"        "{1} took revenge and killed {2} with a critical shotgun blast!"
+    }
+    "fishKillEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} mató a {2} con un pez!"
+        "en"        "{1} killed {2} with a fish!"
+    }
+    "tauntAllclassGuitarRiffEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} mató a {2} con una guitarra en su taunt de todas las clases!"
+        "en"        "{1} killed {2} with a guitar riff from their all-class taunt!"
+    }
+    "kartEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} atropelló a {2} con un Kart!"
+        "en"        "{1} ran over {2} with a Kart!"
+    }
+    "dragonsFuryIgniteEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} mató a {2} con un ataque de fuego de Dragon's Fury!"
+        "en"        "{1} killed {2} with a Dragon's Fury fire attack!"
+    }
+    "slapKillEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} mató a {2} con una bofetada!"
+        "en"        "{1} killed {2} with a slap!"
+    }
+    "axtinguishBoosterEvent"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} mató a {2} con un extintor mejorado!"
+        "en"        "{1} killed {2} with an upgraded extinguisher!"
+    }
+    "g_dominando"
+    {
+        "#format"   "{1:N},{2:N}"
+        "es"        "¡{1} dominó a {2}!"
+        "en"        "{1} dominated {2}!"
+    }
+    "g_BuildingsDestroyed"
+    {
+        "#format"   "{1:N},{2:N},{3:s}"
+        "es"        "¡{1} destruyó una construcción de {2} con {3}!"
+        "en"        "{1} destroyed a building of {2} with {3}!"
+    }
+    "g_ObjectsDestroyed"
+    {
+        "#format"   "{1:N},{2:N},{3:s}"
+        "es"        "¡{1} destruyó un objeto de {2} con {3}!"
+        "en"        "{1} destroyed an object of {2} with {3}!"
+    }
+    "mylevelnotPlayer"
+    {
+        "es"        "Este comando solo puede ser usado por jugadores en el juego."
+        "en"        "This command can only be used by players in the game."
+    }
+    "mylevelcommand"
+    {
+        "#format"   "{1:d},{2:s}"
+        "es"        "Tu nivel actual es: {1} ({2})"
+        "en"        "Your current level is: {1} ({2})"
+    }
     "Round_Wins"
     {
         "#format"   "{1:s},{2:s}"
@@ -33,5 +306,5 @@
         "es"        "{violet}Total de rondas perdidas: {1} puntos perdidos: {2}"
         "en"        "{violet} Rounds Lose: {1}  {2} Points"
     }
-
+    
 }

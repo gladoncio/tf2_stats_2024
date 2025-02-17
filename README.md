@@ -40,12 +40,23 @@ Este plugin está actualmente en desarrollo. La idea es crear un sistema de esta
 - Una vez cargado el plugin, puedes modificar las especificaciones en `addons/sourcemod/config/playerstats.cfg`.
 - Para configurar puntos por tipo de mapa, prefijos, etc., puedes editar `addons/sourcemod/config/playerstatsmaps/vsh_.cfg`.
 - Configura los puntos por tipo de evento en `addons/sourcemod/config/playerlevels.cfg`.
+- Para habilitar MySQL, asegúrate de configurar la base de datos en `addons/sourcemod/config/databases.cfg`:
 
-## Database
-Este plugin solo soporta SQLite por ahora, pero se agregará soporte para MySQL en futuras versiones.
+```json
+"playerstats"
+{
+	"driver"		"mysql"
+	"host"			"localhost"
+	"database"		"playerstats"
+	"user"			"root"
+	"pass"			""
+	//"timeout"		"0"
+	//"port"		"0"
+}
+```
 
 ## Usage (Beta)
-Este plugin aún está en fase beta. Actualmente **no guarda todas las estadísticas**, **no maneja colores**. Sin embargo, representa un gran avance desde la última actualización.
+Este plugin aún está en fase beta. Actualmente **no guarda todas las estadísticas**, Sin embargo, representa un gran avance desde la última actualización.
 
 ### Eventos de Estadísticas
 El plugin registra los siguientes eventos de muerte y destrucción, asignando puntos según el tipo de evento. Estos puntos son configurables en los archivos de configuración del plugin:

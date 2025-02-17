@@ -13,16 +13,222 @@
 #define PLUGIN_VERSION "0.00"
 // Definir el máximo de niveles permitidos
 #define MAX_NIVELES 50
+
 #define MAX_NOMBRE 64  // Definir el tamaño máximo para nombres
-#define PLUGIN_PREFIX 	"{black}[Player Ranks]{valve} " 	// Our chat friendly prefix.
-#define SQL_CREATETABLE "CREATE TABLE IF NOT EXISTS ranks_players (id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,steamid TEXT,steamid64 TEXT,rounds_wins INTEGER,rounds_lose INTEGER,kills INTEGER, points INTEGER,deaths INTEGER,suicides INTEGER,headshots INTEGER,level INTEGER,dominations INTEGER,first_join_date DATETIME, play_time_seconds FLOAT, g_dominado INTEGER DEFAULT 0, g_assist INTEGER DEFAULT 0, backstabEvent INTEGER DEFAULT 0, burningEvent INTEGER DEFAULT 0, suicideEvent INTEGER DEFAULT 0, tauntHadoukenEvent INTEGER DEFAULT 0, burningFlareEvent INTEGER DEFAULT 0, tauntHighNoonEvent INTEGER DEFAULT 0, tauntGrandSlamEvent INTEGER DEFAULT 0, penetrateMyTeamEvent INTEGER DEFAULT 0, penetrateHeadshotEvent INTEGER DEFAULT 0, telefragEvent INTEGER DEFAULT 0, flyingBurnEvent INTEGER DEFAULT 0, pumpkinBombEvent INTEGER DEFAULT 0, decapitationEvent INTEGER DEFAULT 0, shotgunRevengeCritEvent INTEGER DEFAULT 0, fishKillEvent INTEGER DEFAULT 0, tauntAllclassGuitarRiffEvent INTEGER DEFAULT 0, kartEvent INTEGER DEFAULT 0, dragonsFuryIgniteEvent INTEGER DEFAULT 0, slapKillEvent INTEGER DEFAULT 0, axtinguishBoosterEvent INTEGER DEFAULT 0, g_ObjectsDestroyed INTEGER DEFAULT 0, g_BuildingsDestroyed INTEGER DEFAULT 0, g_EventsAssisted INTEGER DEFAULT 0);"
+#define PLUGIN_PREFIX 	"{black}[Player Ranks]{violet} " 	// Our chat friendly prefix.
+#define SQL_CREATETABLE_SQLITE "CREATE TABLE IF NOT EXISTS ranks_players ( \
+    id INTEGER PRIMARY KEY AUTOINCREMENT, \
+    name TEXT, \
+    steamid TEXT, \
+    steamid64 TEXT, \
+    rounds_wins INTEGER, \
+    rounds_lose INTEGER, \
+    kills INTEGER, \
+    points INTEGER, \
+    deaths INTEGER, \
+    suicides INTEGER, \
+    headshots INTEGER, \
+    level INTEGER, \
+    dominations INTEGER, \
+    first_join_date DATETIME, \
+    play_time_seconds FLOAT, \
+    g_dominado INTEGER DEFAULT 0, \
+    g_assist INTEGER DEFAULT 0, \
+    backstabEvent INTEGER DEFAULT 0, \
+    burningEvent INTEGER DEFAULT 0, \
+    suicideEvent INTEGER DEFAULT 0, \
+    tauntHadoukenEvent INTEGER DEFAULT 0, \
+    burningFlareEvent INTEGER DEFAULT 0, \
+    tauntHighNoonEvent INTEGER DEFAULT 0, \
+    tauntGrandSlamEvent INTEGER DEFAULT 0, \
+    penetrateMyTeamEvent INTEGER DEFAULT 0, \
+    penetrateHeadshotEvent INTEGER DEFAULT 0, \
+    telefragEvent INTEGER DEFAULT 0, \
+    flyingBurnEvent INTEGER DEFAULT 0, \
+    pumpkinBombEvent INTEGER DEFAULT 0, \
+    decapitationEvent INTEGER DEFAULT 0, \
+    shotgunRevengeCritEvent INTEGER DEFAULT 0, \
+    fishKillEvent INTEGER DEFAULT 0, \
+    tauntAllclassGuitarRiffEvent INTEGER DEFAULT 0, \
+    kartEvent INTEGER DEFAULT 0, \
+    dragonsFuryIgniteEvent INTEGER DEFAULT 0, \
+    slapKillEvent INTEGER DEFAULT 0, \
+    axtinguishBoosterEvent INTEGER DEFAULT 0, \
+    g_ObjectsDestroyed INTEGER DEFAULT 0, \
+    g_BuildingsDestroyed INTEGER DEFAULT 0, \
+    g_EventsAssisted INTEGER DEFAULT 0 \
+);"
 
-#define SQL_SELECT_INFO "SELECT kills, deaths, suicides, headshots, level, dominations, play_time_seconds, points, rounds_wins, rounds_lose, g_dominado, g_assist, backstabEvent, burningEvent, suicideEvent, tauntHadoukenEvent, burningFlareEvent, tauntHighNoonEvent, tauntGrandSlamEvent, penetrateMyTeamEvent, penetrateHeadshotEvent, telefragEvent, flyingBurnEvent, pumpkinBombEvent, decapitationEvent, shotgunRevengeCritEvent, fishKillEvent, tauntAllclassGuitarRiffEvent, kartEvent, dragonsFuryIgniteEvent, slapKillEvent, axtinguishBoosterEvent, g_ObjectsDestroyed, g_BuildingsDestroyed, g_EventsAssisted FROM ranks_players WHERE steamid = '%s'"
 
-#define SQL_PLAYER_NOT_EXISTS "INSERT INTO ranks_players (steamid, steamid64, name, rounds_wins, rounds_lose, kills, points, deaths, suicides, headshots, level, dominations, first_join_date, play_time_seconds, g_dominado, g_assist, backstabEvent, burningEvent, suicideEvent, tauntHadoukenEvent, burningFlareEvent, tauntHighNoonEvent, tauntGrandSlamEvent, penetrateMyTeamEvent, penetrateHeadshotEvent, telefragEvent, flyingBurnEvent, pumpkinBombEvent, decapitationEvent, shotgunRevengeCritEvent, fishKillEvent, tauntAllclassGuitarRiffEvent, kartEvent, dragonsFuryIgniteEvent, slapKillEvent, axtinguishBoosterEvent, g_ObjectsDestroyed, g_BuildingsDestroyed, g_EventsAssisted) VALUES ('%s', '%s', '%s', 0, 0, 0, 0, 0, 0, 0, 0, 0, '%s', 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)"
+#define SQL_CREATETABLE_MYSQL "CREATE TABLE IF NOT EXISTS ranks_players ( \
+    id INT AUTO_INCREMENT PRIMARY KEY, \
+    name VARCHAR(255), \
+    steamid VARCHAR(32), \
+    steamid64 VARCHAR(64), \
+    rounds_wins INT, \
+    rounds_lose INT, \
+    kills INT, \
+    points INT, \
+    deaths INT, \
+    suicides INT, \
+    headshots INT, \
+    level INT, \
+    dominations INT, \
+    first_join_date DATETIME, \
+    play_time_seconds FLOAT, \
+    g_dominado INT DEFAULT 0, \
+    g_assist INT DEFAULT 0, \
+    backstabEvent INT DEFAULT 0, \
+    burningEvent INT DEFAULT 0, \
+    suicideEvent INT DEFAULT 0, \
+    tauntHadoukenEvent INT DEFAULT 0, \
+    burningFlareEvent INT DEFAULT 0, \
+    tauntHighNoonEvent INT DEFAULT 0, \
+    tauntGrandSlamEvent INT DEFAULT 0, \
+    penetrateMyTeamEvent INT DEFAULT 0, \
+    penetrateHeadshotEvent INT DEFAULT 0, \
+    telefragEvent INT DEFAULT 0, \
+    flyingBurnEvent INT DEFAULT 0, \
+    pumpkinBombEvent INT DEFAULT 0, \
+    decapitationEvent INT DEFAULT 0, \
+    shotgunRevengeCritEvent INT DEFAULT 0, \
+    fishKillEvent INT DEFAULT 0, \
+    tauntAllclassGuitarRiffEvent INT DEFAULT 0, \
+    kartEvent INT DEFAULT 0, \
+    dragonsFuryIgniteEvent INT DEFAULT 0, \
+    slapKillEvent INT DEFAULT 0, \
+    axtinguishBoosterEvent INT DEFAULT 0, \
+    g_ObjectsDestroyed INT DEFAULT 0, \
+    g_BuildingsDestroyed INT DEFAULT 0, \
+    g_EventsAssisted INT DEFAULT 0 \
+);"
+
+#define SQL_SELECT_INFO "SELECT \
+    kills, \
+    deaths, \
+    suicides, \
+    headshots, \
+    level, \
+    dominations, \
+    play_time_seconds, \
+    points, \
+    rounds_wins, \
+    rounds_lose, \
+    g_dominado, \
+    g_assist, \
+    backstabEvent, \
+    burningEvent, \
+    suicideEvent, \
+    tauntHadoukenEvent, \
+    burningFlareEvent, \
+    tauntHighNoonEvent, \
+    tauntGrandSlamEvent, \
+    penetrateMyTeamEvent, \
+    penetrateHeadshotEvent, \
+    telefragEvent, \
+    flyingBurnEvent, \
+    pumpkinBombEvent, \
+    decapitationEvent, \
+    shotgunRevengeCritEvent, \
+    fishKillEvent, \
+    tauntAllclassGuitarRiffEvent, \
+    kartEvent, \
+    dragonsFuryIgniteEvent, \
+    slapKillEvent, \
+    axtinguishBoosterEvent, \
+    g_ObjectsDestroyed, \
+    g_BuildingsDestroyed, \
+    g_EventsAssisted \
+FROM ranks_players \
+WHERE steamid = '%s'"
 
 
-#define SQL_UPDATE_INFO "UPDATE ranks_players SET kills = %d, deaths = %d, suicides = %d, headshots = %d, level = %d, dominations = %d, play_time_seconds = play_time_seconds + %.2f, points = %d, rounds_wins = %d, rounds_lose = %d, g_dominado = %d, g_assist = %d, backstabEvent = %d, burningEvent = %d, suicideEvent = %d, tauntHadoukenEvent = %d, burningFlareEvent = %d, tauntHighNoonEvent = %d, tauntGrandSlamEvent = %d, penetrateMyTeamEvent = %d, penetrateHeadshotEvent = %d, telefragEvent = %d, flyingBurnEvent = %d, pumpkinBombEvent = %d, decapitationEvent = %d, shotgunRevengeCritEvent = %d, fishKillEvent = %d, tauntAllclassGuitarRiffEvent = %d, kartEvent = %d, dragonsFuryIgniteEvent = %d, slapKillEvent = %d, axtinguishBoosterEvent = %d, g_ObjectsDestroyed = %d, g_BuildingsDestroyed = %d, g_EventsAssisted = %d WHERE steamid = '%s'"
+#define SQL_PLAYER_NOT_EXISTS "INSERT INTO ranks_players ( \
+    steamid, \
+    steamid64, \
+    name, \
+    rounds_wins, \
+    rounds_lose, \
+    kills, \
+    points, \
+    deaths, \
+    suicides, \
+    headshots, \
+    level, \
+    dominations, \
+    first_join_date, \
+    play_time_seconds, \
+    g_dominado, \
+    g_assist, \
+    backstabEvent, \
+    burningEvent, \
+    suicideEvent, \
+    tauntHadoukenEvent, \
+    burningFlareEvent, \
+    tauntHighNoonEvent, \
+    tauntGrandSlamEvent, \
+    penetrateMyTeamEvent, \
+    penetrateHeadshotEvent, \
+    telefragEvent, \
+    flyingBurnEvent, \
+    pumpkinBombEvent, \
+    decapitationEvent, \
+    shotgunRevengeCritEvent, \
+    fishKillEvent, \
+    tauntAllclassGuitarRiffEvent, \
+    kartEvent, \
+    dragonsFuryIgniteEvent, \
+    slapKillEvent, \
+    axtinguishBoosterEvent, \
+    g_ObjectsDestroyed, \
+    g_BuildingsDestroyed, \
+    g_EventsAssisted) \
+    VALUES ( \
+    '%s', \
+    '%s', \
+    '%s', \
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '%s', 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)"
+
+
+
+#define SQL_UPDATE_INFO "UPDATE ranks_players SET \
+    kills = %d, \
+    deaths = %d, \
+    suicides = %d, \
+    headshots = %d, \
+    level = %d, \
+    dominations = %d, \
+    play_time_seconds = play_time_seconds + %.2f, \
+    points = %d, \
+    rounds_wins = %d, \
+    rounds_lose = %d, \
+    g_dominado = %d, \
+    g_assist = %d, \
+    backstabEvent = %d, \
+    burningEvent = %d, \
+    suicideEvent = %d, \
+    tauntHadoukenEvent = %d, \
+    burningFlareEvent = %d, \
+    tauntHighNoonEvent = %d, \
+    tauntGrandSlamEvent = %d, \
+    penetrateMyTeamEvent = %d, \
+    penetrateHeadshotEvent = %d, \
+    telefragEvent = %d, \
+    flyingBurnEvent = %d, \
+    pumpkinBombEvent = %d, \
+    decapitationEvent = %d, \
+    shotgunRevengeCritEvent = %d, \
+    fishKillEvent = %d, \
+    tauntAllclassGuitarRiffEvent = %d, \
+    kartEvent = %d, \
+    dragonsFuryIgniteEvent = %d, \
+    slapKillEvent = %d, \
+    axtinguishBoosterEvent = %d, \
+    g_ObjectsDestroyed = %d, \
+    g_BuildingsDestroyed = %d, \
+    g_EventsAssisted = %d \
+WHERE steamid = '%s'"
+
 
 // Consulta para obtener el Top 20
 #define SQL_SELECT_TOP20 "SELECT name, points FROM ranks_players ORDER BY points DESC LIMIT 20"
@@ -38,7 +244,7 @@ public Plugin myinfo =
     author = "Gladoncio",
     description = "Un plugin que registrará las stats y registrará un sistema de niveles",
     version = PLUGIN_VERSION,
-    url = "Tu URL de sitio web/Perfil de AlliedModders"
+    url = "https://github.com/gladoncio/tf2_stats_2025"
 };
 
 public Plugin myPlugin;
@@ -173,9 +379,9 @@ public void OnPluginStart()
     LoadTranslations("common.phrases");
     LoadTranslations("playerstats.phrases");
     LoadLevelsConfig();
-    RegConsoleCmd("sm_mylevel", Comando_MiNivel, "Muestra tu nivel actual");
+    RegConsoleCmd("sm_minivel", Comando_MiNivel, "Muestra tu nivel actual");
     RegConsoleCmd("sm_niveles", ComandoNiveles, "Muestra los niveles en la consola.");
-    RegAdminCmd("sm_hud", Command_PrintMessage, ADMFLAG_GENERIC);
+    RegAdminCmd("sm_test", Command_PrintMessage, ADMFLAG_GENERIC);
     HookEvent("player_death", OnPlayerDeathEventsStocks);
     HookEvent("player_spawn", Event_PlayerSpawn, EventHookMode_Pre);
     HookEvent("teamplay_round_win", Evento_RondaGanada, EventHookMode_Post);
@@ -184,15 +390,13 @@ public void OnPluginStart()
     RegConsoleCmd("sm_rank", Command_ShowStats);
     
 
+    g_DB = SQL_Connect("playerstats", false, g_DBError, sizeof(g_DBError));
 
-	g_DB = SQL_Connect("playerstats", false, g_DBError, sizeof(g_DBError));
-	
-	if (g_DB == null) {
-	    PrintToServer("Could not connect to 'playerstats': %s", g_DBError);
-	    return;
-	}
-    else
-    {
+    if (g_DB == null) {
+        PrintToServer("Could not connect to 'playerstats': %s", g_DBError);
+        return;
+    } else {
+        PrintToServer("Connection to playerstats successful.");
         createInitialBd();
     }
 }
@@ -207,54 +411,57 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 public Action ShowPlayerStatsMenu(int client)
 {
     if (!client || !IsClientInGame(client)) return Plugin_Handled;
-
+    CalcularNivel(client);
+    char entry[128]; // Tamaño ajustado para cada ítem individual
+    Format(entry, sizeof(entry), "%T", "menu_title", LANG_SERVER);
     // Crear el menú
     Menu menu = new Menu(PlayerStatsMenuHandler);
-    menu.SetTitle("Estadísticas de Jugador");
+    menu.SetTitle("%s",entry);
 
     // Agregar ítems individuales para cada estadística
-    char entry[128]; // Tamaño ajustado para cada ítem individual
+
     // Puntos
-    Format(entry, sizeof(entry), "Puntos: %d", playersdata[client].g_Points);
+    Format(entry, sizeof(entry), "%T", "menu_points", LANG_SERVER, playersdata[client].g_Points);
     menu.AddItem("points", entry);
+
     if(playersdata[client].g_PlayerPlayTime / 60.0 > 60) {
-        Format(entry, sizeof(entry), "Tiempo Jugado: %.2f horas", (playersdata[client].g_PlayerPlayTime / 60.0) / 60.0);
+        Format(entry, sizeof(entry), "%T","menu_playtime_hours", LANG_SERVER,  (playersdata[client].g_PlayerPlayTime / 60.0) / 60.0);
         menu.AddItem("playtime", entry);
     }else{
-        Format(entry, sizeof(entry), "Tiempo Jugado: %.2f minutos", playersdata[client].g_PlayerPlayTime / 60.0);
+        Format(entry, sizeof(entry), "%T","menu_playtime_minutes", LANG_SERVER, playersdata[client].g_PlayerPlayTime / 60.0);
         menu.AddItem("playtime", entry);
     }
 
 
     // Kills
-    Format(entry, sizeof(entry), "Kills: %d", playersdata[client].g_PlayerKills);
+    Format(entry, sizeof(entry), "%T", "menu_kills", LANG_SERVER,  playersdata[client].g_PlayerKills);
     menu.AddItem("kills", entry);
 
     // Deaths
-    Format(entry, sizeof(entry), "Deaths: %d", playersdata[client].g_PlayerDeaths);
+    Format(entry, sizeof(entry), "%T", "menu_deaths", LANG_SERVER, playersdata[client].g_PlayerDeaths);
     menu.AddItem("deaths", entry);
 
     // Suicidios
-    Format(entry, sizeof(entry), "Suicidios: %d", playersdata[client].g_PlayerSuicides);
+    Format(entry, sizeof(entry), "%T", "menu_suicides", LANG_SERVER, playersdata[client].g_PlayerSuicides);
     menu.AddItem("suicides", entry);
 
     // Headshots
-    Format(entry, sizeof(entry), "Headshots: %d", playersdata[client].g_PlayerHeadshots);
+    Format(entry, sizeof(entry), "%T", "menu_headshots", LANG_SERVER, playersdata[client].g_PlayerHeadshots);
     menu.AddItem("headshots", entry);
 
     // Nivel
-    Format(entry, sizeof(entry), "Nivel: %d", playersdata[client].g_PlayerLevel);
+    Format(entry, sizeof(entry), "%T", "menu_level", LANG_SERVER, playersdata[client].g_PlayerLevel);
     menu.AddItem("level", entry);
 
     // Dominaciones
-    Format(entry, sizeof(entry), "Dominaciones: %d", playersdata[client].g_dominando);
+    Format(entry, sizeof(entry), "%T", "menu_dominations", LANG_SERVER, playersdata[client].g_dominando);
     menu.AddItem("dominations", entry);
     // Rondas Ganadas
-    Format(entry, sizeof(entry), "Rondas Ganadas: %d", playersdata[client].g_roundWins);
+    Format(entry, sizeof(entry), "%T", "menu_rounds_won", LANG_SERVER, playersdata[client].g_roundWins);
     menu.AddItem("rounds_won", entry);
 
     // Rondas Perdidas
-    Format(entry, sizeof(entry), "Rondas Perdidas: %d", playersdata[client].g_roundLose);
+    Format(entry, sizeof(entry), "%T", "menu_rounds_lost", LANG_SERVER, playersdata[client].g_roundLose);
     menu.AddItem("rounds_lost", entry);
 
     // Mostrar el menú al jugador
@@ -273,17 +480,22 @@ public int PlayerStatsMenuHandler(Menu menu, MenuAction action, int client, int 
 
 public Action Command_SetPoints(int client, int args)
 {
+    if (!IsValidClient(client) || !IsPlayerAlive(client)) return Plugin_Handled;  // Verificamos que el jugador esté vivo
+
+    char entry[128];
     // Verificar permisos de administrador
     if (!CheckCommandAccess(client, "sm_setpoints", ADMFLAG_GENERIC))
     {
-        ReplyToCommand(client, "[Error] No tienes permisos para usar este comando.");
+        Format(entry, sizeof(entry), "%s %T", PLUGIN_PREFIX, "command_not_admin", LANG_SERVER);
+        MC_ReplyToCommand(client, entry);
         return Plugin_Handled;
     }
 
     // Verificar que se proporcionaron los argumentos correctos
     if (args < 2)
     {
-        ReplyToCommand(client, "[Uso] !setpoints <usuario> <puntos>");
+        Format(entry, sizeof(entry), "%s %T", PLUGIN_PREFIX, "setpoints_usage", LANG_SERVER);
+        MC_ReplyToCommand(client, entry);
         return Plugin_Handled;
     }
 
@@ -298,7 +510,8 @@ public Action Command_SetPoints(int client, int args)
     int newPoints = StringToInt(pointsArg);
     if (newPoints < 0)
     {
-        ReplyToCommand(client, "[Error] Los puntos no pueden ser negativos.");
+        Format(entry, sizeof(entry), "%s %T", PLUGIN_PREFIX, "negative_points", LANG_SERVER);
+        MC_ReplyToCommand(client, entry);
         return Plugin_Handled;
     }
 
@@ -306,7 +519,8 @@ public Action Command_SetPoints(int client, int args)
     int target = FindTarget(client, targetArg, true);
     if (target == -1)
     {
-        ReplyToCommand(client, "[Error] Jugador no encontrado.");
+        Format(entry, sizeof(entry), "%s %T", PLUGIN_PREFIX, "player_not_found", LANG_SERVER);
+        MC_ReplyToCommand(client, entry);
         return Plugin_Handled;
     }
 
@@ -325,12 +539,13 @@ public Action Command_SetPoints(int client, int args)
         if(g_Config.use_hud!=0){
             ShowLevelProgress(target);
         }
-
-        ReplyToCommand(client, "[Éxito] Se han actualizado los puntos de %N a %d.", target, newPoints);
+        Format(entry, sizeof(entry), "%s %T", PLUGIN_PREFIX, "points_ok", LANG_SERVER, target, newPoints);
+        MC_ReplyToCommand(client, entry);
     }
     else
     {
-        ReplyToCommand(client, "[Error] No se pudo actualizar los puntos.");
+        Format(entry, sizeof(entry), "%s %T", PLUGIN_PREFIX, "points_bad", LANG_SERVER);
+        MC_ReplyToCommand(client, entry);
     }
 
     return Plugin_Handled;
@@ -360,11 +575,40 @@ bool ExecuteQuery(const char[] query)
 // Función para crear la tabla y realizar otras operaciones iniciales
 public void createInitialBd()
 {
-    // Ejecuta los queries iniciales
-    if (!ExecuteQuery(SQL_CREATETABLE))
+    if (g_DB == null)  // Verifica si la conexión falló
     {
-        PrintToServer("Failed to create table.");
+        PrintToServer("Error: No se pudo conectar a la base de datos.");
         return;
+    }
+
+    char driverName[32];
+    SQL_ReadDriver(g_DB, driverName, sizeof(driverName));
+
+    PrintToServer("El driver de la base de datos es: %s", driverName);
+
+    SQL_ReadDriver(g_DB, driverName, sizeof(driverName));
+
+    if (StrEqual(driverName, "mysql", false))
+    {
+        PrintToServer("Usando MySQL");
+        if (!ExecuteQuery(SQL_CREATETABLE_MYSQL))
+        {
+            PrintToServer("Failed to create table.");
+            return;
+        }
+    }
+    else if (StrEqual(driverName, "sqlite", false))
+    {
+        PrintToServer("Usando SQLite");
+        if (!ExecuteQuery(SQL_CREATETABLE_SQLITE))
+        {
+            PrintToServer("Failed to create table.");
+            return;
+        }
+    }
+    else
+    {
+        PrintToServer("Driver desconocido: %s", driverName);
     }
 
     PrintToServer("Initial database setup completed.");
@@ -1018,6 +1262,7 @@ public void OnPlayerDeathEventsStocks(Event event, const char[] name, bool dontB
     int customkill = event.GetInt("customkill");
     int deathFlags = event.GetInt("death_flags");  // Obtenemos las banderas de la muerte
     char weapon[64];
+    char buffer[255];
     event.GetString("weapon", weapon, sizeof(weapon));
 
     // Variable para los nombres
@@ -1026,6 +1271,14 @@ public void OnPlayerDeathEventsStocks(Event event, const char[] name, bool dontB
     GetClientName(attacker, nameAttacker, sizeof(nameAttacker));
     GetClientName(victim, nameVictim, sizeof(nameVictim));
 
+    // Verificamos si el atacante dominó al jugador
+    if (attacker > 0 && deathFlags & TF_DEATHFLAG_KILLERDOMINATION) {
+        Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "g_dominando", LANG_SERVER, attacker, victim);
+        MC_PrintToChat(attacker,buffer);
+
+        playersdata[attacker].g_dominando += 1;  // Aumentamos el contador de dominaciones
+        playersdata[victim].g_dominado += 1;  // Incrementamos un contador en la víctima
+    }
     if (victim != attacker){
         playersdata[victim].g_PlayerDeaths += 1;
         playersdata[attacker].g_PlayerKills += 1; 
@@ -1036,143 +1289,184 @@ public void OnPlayerDeathEventsStocks(Event event, const char[] name, bool dontB
         UpdatePlayerPoints(victim, -g_Config.puntosg_PlayerKills);
     }
 
-    // Verificamos si el atacante dominó al jugador
-    if (attacker > 0 && deathFlags & TF_DEATHFLAG_KILLERDOMINATION) {
-        PrintToChatAll("¡%N dominó a %N!", attacker, victim);
-        playersdata[attacker].g_dominando += 1;  // Aumentamos el contador de dominaciones
-        playersdata[victim].g_dominado += 1;  // Incrementamos un contador en la víctima
-    }
-
     // Manejamos los eventos personalizados de muertes
     switch (customkill) {
         case TF_CUSTOM_HEADSHOT: {
-            PrintToChatAll("¡%N hizo un headshot a %N!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "headshot", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].g_PlayerHeadshots += 1;
             UpdatePlayerPoints(attacker,g_Config.puntosg_PlayerHeadshots);
             return;
         }
         case TF_CUSTOM_BACKSTAB: {
-            PrintToChatAll("¡%N apuñaló por la espalda a %N!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "backstabs", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].backstabEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntosbackstabEvent);
             return;
         }
         case TF_CUSTOM_BURNING: {
-            PrintToChatAll("¡%N quemó a %N con fuego!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "burning", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].burningEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntosburningEvent);
             return;
         }
         case TF_CUSTOM_SUICIDE: {
-            PrintToChatAll("¡%N se suicidó!", victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "Suicides", LANG_SERVER, victim);
+            MC_PrintToChat(victim,buffer);
+
             playersdata[victim].g_PlayerSuicides += 1; // Incrementa los suicidios del jugador
             UpdatePlayerPoints(attacker, -g_Config.puntosg_PlayerSuicides);
             return;
         }
         case TF_CUSTOM_TAUNT_HADOUKEN: {
-            PrintToChatAll("¡%N mató a %N con un Hadouken!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "Hadouken", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].tauntHadoukenEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntostauntHadoukenEvent);
             return;
         }
         case TF_CUSTOM_BURNING_FLARE: {
-            PrintToChatAll("¡%N quemó a %N con una flecha incendiaria!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "burningFlareEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].burningFlareEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntosburningFlareEvent);
             return;
         }
         case TF_CUSTOM_TAUNT_HIGH_NOON: {
-            PrintToChatAll("¡%N mató a %N con su taunt High Noon!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "tauntHighNoonEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].tauntHighNoonEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntostauntHighNoonEvent);
             return;
         }
         case TF_CUSTOM_TAUNT_GRAND_SLAM: {
-            PrintToChatAll("¡%N hizo un Grand Slam con taunt contra %N!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "slam", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].tauntGrandSlamEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntostauntGrandSlamEvent);
             return;
         }
         case TF_CUSTOM_PENETRATE_MY_TEAM: {
-            PrintToChatAll("¡%N disparó a través de su propio equipo y mató a %N!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "penetrateMyTeamEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].penetrateMyTeamEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntospenetrateMyTeamEvent);
             return;
         }
         case TF_CUSTOM_PENETRATE_HEADSHOT: {
-            PrintToChatAll("¡%N hizo un headshot penetrante a través de las líneas enemigas, matando a %N!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "penetrateHeadshotEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].penetrateHeadshotEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntospenetrateHeadshotEvent);
             return;
         }
         case TF_CUSTOM_TELEFRAG: {
-            PrintToChatAll("¡%N mató a %N con un telefrag!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "telefragEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].telefragEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntostelefragEvent);
             return;
         }
         case TF_CUSTOM_FLYINGBURN: {
-            PrintToChatAll("¡%N quemó a %N mientras volaba!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "flyingBurnEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].flyingBurnEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntosflyingBurnEvent);
             return;
         }
         case TF_CUSTOM_PUMPKIN_BOMB: {
-            PrintToChatAll("¡%N mató a %N con una bomba de calabaza!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "pumpkinBombEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].pumpkinBombEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntospumpkinBombEvent);
             return;
         }
         case TF_CUSTOM_DECAPITATION: {
-            PrintToChatAll("¡%N decapitó a %N!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "decapitationEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].decapitationEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntosdecapitationEvent);
             return;
         }
         case TF_CUSTOM_SHOTGUN_REVENGE_CRIT: {
-            PrintToChatAll("¡%N se vengó y mató a %N con un disparo crítico de escopeta!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "shotgunRevengeCritEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].shotgunRevengeCritEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntosshotgunRevengeCritEvent);
             return;
         }
         case TF_CUSTOM_FISH_KILL: {
-            PrintToChatAll("¡%N mató a %N con un pez!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "fishKillEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].fishKillEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntosfishKillEvent);
             return;
         }
         case TF_CUSTOM_TAUNT_ALLCLASS_GUITAR_RIFF: {
-            PrintToChatAll("¡%N mató a %N con una guitarra en su taunt de todas las clases!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "tauntAllclassGuitarRiffEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].tauntAllclassGuitarRiffEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntostauntAllclassGuitarRiffEvent);
             return;
         }
         case TF_CUSTOM_KART: {
-            PrintToChatAll("¡%N atropelló a %N con un Kart!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "kartEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].kartEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntoskartEvent);
             return;
         }
         case TF_CUSTOM_DRAGONS_FURY_IGNITE: {
-            PrintToChatAll("¡%N mató a %N con un ataque de fuego de Dragon's Fury!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "dragonsFuryIgniteEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].dragonsFuryIgniteEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntosdragonsFuryIgniteEvent);
             return;
         }
         case TF_CUSTOM_SLAP_KILL: {
-            PrintToChatAll("¡%N mató a %N con una bofetada!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "slapKillEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].slapKillEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntosslapKillEvent);
             return;
         }
         case TF_CUSTOM_AXTINGUISHER_BOOSTED: {
-            PrintToChatAll("¡%N mató a %N con un extintor mejorado!", attacker, victim);
+            Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "axtinguishBoosterEvent", LANG_SERVER, attacker, victim);
+            MC_PrintToChat(attacker,buffer);
+
             playersdata[attacker].axtinguishBoosterEvent += 1;
             UpdatePlayerPoints(attacker,g_Config.puntosaxtinguishBoosterEvent);
             return;
         }
-        default:
-            return;
+        default: {
+            if (victim != attacker){
+                Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "kill_not_event", LANG_SERVER, attacker, victim);
+                MC_PrintToChat(attacker,buffer);
+                return;
+            }
+        }
+
     }
 
 }
@@ -1182,6 +1476,7 @@ public void OnObjectDestroyed(Event event, const char[] name, bool dontBroadcast
     int attacker = GetClientOfUserId(event.GetInt("attacker")); // Jugador que destruyó el objeto
     int assister = GetClientOfUserId(event.GetInt("assister")); // Jugador que asistió (si hay uno)
     char weapon[64];
+    char buffer[255];
     event.GetString("weapon", weapon, sizeof(weapon)); // Arma usada para destruir el objeto
     bool wasBuilding = event.GetBool("was_building"); // ¿Era un objeto en construcción?
 
@@ -1193,9 +1488,11 @@ public void OnObjectDestroyed(Event event, const char[] name, bool dontBroadcast
 
     // Mensaje de destrucción
     if (wasBuilding) {
-        PrintToChatAll("¡%N destruyó una construcción de %N con %s!", attacker, owner, weapon);
+        Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "g_BuildingsDestroyed", LANG_SERVER, attacker, owner, weapon);
+        MC_PrintToChat(attacker,buffer);
     } else {
-        PrintToChatAll("¡%N destruyó un objeto de %N con %s!", attacker, owner, weapon);
+        Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "g_ObjectsDestroyed", LANG_SERVER, attacker, owner, weapon);
+        MC_PrintToChat(attacker,buffer);
     }
 
     // Registra las estadísticas para el atacante
@@ -1270,10 +1567,13 @@ public Action ComandoNiveles(int client, int args)
 // Función que maneja el comando
 public Action Comando_MiNivel(int client, int args)
 {
+    char buffer[255];
     // Verificar si el comando es ejecutado por un jugador válido
     if (client == 0 || !IsClientInGame(client))
     {
-        ReplyToCommand(client, "Este comando solo puede ser usado por jugadores en el juego.");
+        Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "mylevelnotPlayer", LANG_SERVER);
+        MC_ReplyToCommand(client,buffer);
+
         return Plugin_Handled;
     }
 
@@ -1286,11 +1586,8 @@ public Action Comando_MiNivel(int client, int args)
     strcopy(nombreNivel, sizeof(nombreNivel), playersdata[client].g_LevelName);
 
     // Enviar el mensaje al jugador
-    if (nivel>0){
-        PrintToChat(client, "Tu nivel actual es: %d (%s)", nivel, nombreNivel);
-    }else{
-          PrintToChat(client, "Tu nivel actual es: 0 (iniciado)");
-    }
+    Format(buffer, sizeof(buffer), "%s %T", PLUGIN_PREFIX, "mylevelcommand", LANG_SERVER, nivel, nombreNivel);
+    MC_PrintToChat(client,buffer);
 
     return Plugin_Handled;
 }
